@@ -142,7 +142,7 @@
   display: flex;
   gap: 0.5rem;
 }
-.approve-button, .reject-button {
+.approve-button, .reject-button, .detail-button {
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.3rem 0.8rem;
@@ -167,8 +167,17 @@
   background-color: var(--color-error);
   color: var(--color-text-on-primary);
 }
+.detail-button {
+  color: #3B82F6; /* Biru */
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #3B82F6;
+}
+.detail-button:hover {
+  background-color: #3B82F6;
+  color: var(--color-text-on-primary);
+}
 
-/* === Style Modal (BARU) === */
+/* === Style Modal === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -188,7 +197,7 @@
   border-radius: 8px;
   padding: 2rem;
   width: 100%;
-  max-width: 500px; /* Modal persetujuan bisa lebih kecil */
+  max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -219,7 +228,7 @@
   border-top: 1px solid var(--color-border);
 }
 
-/* === Style Info Detail di Modal (BARU) === */
+/* === Style Info Detail di Modal === */
 .detail-info-grid.simple-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -243,6 +252,38 @@
 }
 .detail-info-grid .detail-item.detail-span-2 {
   grid-column: span 1;
+}
+
+/* === Style Form Sanksi (BARU) === */
+.sanksi-form {
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-bg);
+  margin-bottom: 2rem;
+}
+.sanksi-form h3 {
+  margin-top: 0;
+}
+.sanksi-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: flex-end;
+}
+.sanksi-form .form-span-2 {
+  grid-column: span 2;
+}
+.sanksi-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.sanksi-form-actions .login-button,
+.sanksi-form-actions .reject-button {
+  width: auto;
+  margin-top: 0;
 }
 
 
@@ -272,6 +313,12 @@
     font-size: 0.8rem;
   }
   .results-table .action-buttons {
-    flex-direction: column; /* Tumpuk tombol di HP */
+    flex-direction: column;
+  }
+  .sanksi-form .form-grid {
+    grid-template-columns: 1fr; /* Tumpuk form sanksi di HP */
+  }
+  .sanksi-form .form-span-2 {
+    grid-column: span 1;
   }
 }

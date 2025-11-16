@@ -32,7 +32,8 @@
 }
 .navbar-links {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 .navbar-links button {
   background: none;
@@ -139,6 +140,7 @@
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 .results-table th {
   color: var(--color-text-secondary);
@@ -166,6 +168,23 @@
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
 }
+.mark-returned-button {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #3B82F6;
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid #3B82F6;
+  padding: 0.3rem 0.8rem;
+}
+.mark-returned-button:hover {
+  background-color: #3B82F6;
+  color: var(--color-text-on-primary);
+}
+.text-late {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
 
 /* === Style Badge (Status Pengajuan) === */
 .status-badge-small {
@@ -178,17 +197,17 @@
 }
 .status-badge-small.menunggu,
 .detail-item p.status-badge.menunggu {
-  background-color: rgba(249, 115, 22, 0.1); /* Orange */
+  background-color: rgba(249, 115, 22, 0.1);
   color: #D97706;
 }
 .status-badge-small.disetujui,
 .detail-item p.status-badge.disetujui {
-  background-color: rgba(16, 185, 129, 0.1); /* Green */
+  background-color: rgba(16, 185, 129, 0.1);
   color: var(--color-primary-hover);
 }
 .status-badge-small.ditolak,
 .detail-item p.status-badge.ditolak {
-  background-color: rgba(239, 68, 68, 0.1); /* Red */
+  background-color: rgba(239, 68, 68, 0.1);
   color: var(--color-error);
 }
 .status-badge-small.alumni {
@@ -269,6 +288,16 @@
   grid-column: span 2;
 }
 
+/* === Style Input Keterlambatan (BARU) === */
+.keterlambatan-inputs {
+  display: flex;
+  gap: 1rem;
+}
+.keterlambatan-inputs > div {
+  flex: 1;
+}
+
+
 /* === Style Halaman Detail (dicopy) === */
 .detail-view-container {
   display: flex;
@@ -318,6 +347,32 @@
 .detail-view-container.simple .detail-info-grid {
   gap: 0.5rem 1.5rem;
 }
+/* Info di Modal Persetujuan Ndalem */
+.detail-info-grid.simple-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.detail-info-grid.simple-grid .detail-item {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+.detail-info-grid.simple-grid .detail-item label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+.detail-info-grid.simple-grid .detail-item p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+.detail-info-grid.simple-grid .detail-item.detail-span-2 {
+  grid-column: span 1;
+}
+
 .detail-item {
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.5rem;
@@ -349,20 +404,8 @@
   font-weight: 500;
   text-transform: capitalize;
 }
-.detail-item p.status-badge.alumni {
-  background-color: rgba(107, 114, 128, 0.1);
-  color: #4B5563;
-}
-.detail-item p.status-badge.pengurus {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #2563EB;
-}
-.detail-item p.status-badge.pengabdi {
-  background-color: rgba(249, 115, 22, 0.1);
-  color: #D97706;
-}
 
-/* === Style Tab Status (BARU) === */
+/* === Style Tab Status === */
 .status-tabs {
   display: flex;
   gap: 0.5rem;
@@ -391,7 +434,7 @@
   border-bottom-color: var(--color-primary);
 }
 
-/* === Tombol Cetak (BARU) === */
+/* === Tombol Cetak === */
 .print-button {
   font-size: 0.9rem;
   font-weight: 500;
@@ -419,10 +462,12 @@
     flex-grow: 1;
     justify-content: center;
     gap: 0.5rem;
+    overflow-x: auto;
   }
   .navbar-links button {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
   }
   .navbar-user span {
     display: none;
@@ -471,5 +516,9 @@
   .status-tabs {
     width: 100%;
     overflow-x: auto;
+  }
+  .keterlambatan-inputs {
+    flex-direction: column; /* Tumpuk di HP */
+    gap: 1rem;
   }
 }

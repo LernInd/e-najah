@@ -1,11 +1,11 @@
 // src/react-app/SuratIzinA5.tsx
 
 import React from "react";
-import "./SuratIzinA5.css"; // Kita akan perbarui file CSS ini
+import "./SuratIzinA5.css";
 
-// Tipe data yang dibutuhkan oleh surat
+// Tipe data yang dibutuhkan oleh surat (DIPERBARUI)
 export type SuratIzinData = {
-  ID_Pengajuan: number;
+  ID_Perizinan: number; // Gunakan ID Perizinan
   nama_santri: string;
   alamat: string | null;
   foto: string | null;
@@ -17,10 +17,37 @@ interface SuratIzinProps {
   data: SuratIzinData;
 }
 
-// Gunakan React.forwardRef agar 'react-to-print' bisa mengakses DOM-nya
+// --- Helper untuk Bulan Romawi (BARU) ---
+const toRoman = (num: number): string => {
+  const numerals = [
+    { value: 10, numeral: 'X' }, { value: 9, numeral: 'IX' },
+    { value: 5, numeral: 'V' }, { value: 4, numeral: 'IV' },
+    { value: 1, numeral: 'I' }
+  ];
+  let result = '';
+  for (const { value, numeral } of numerals) {
+    while (num >= value) {
+      result += numeral;
+      num -= value;
+    }
+  }
+  return result;
+};
+
+// Gunakan React.forwardRef
 export const SuratIzinA5 = React.forwardRef<HTMLDivElement, SuratIzinProps>(
   ({ data }, ref) => {
     
+    // --- Logika Format Nomor Surat (BARU) ---
+    const now = new Date();
+    const tahun = now.getFullYear();
+    const bulanRomawi = toRoman(now.getMonth() + 1); // getMonth() 0-indexed
+    const kodeSurat = "IZN/E-NAJAH"; // Ganti dengan kode surat Anda
+    // Format nomor urut (ID_Perizinan) menjadi 3 digit, misal: 001
+    const nomorUrut = String(data.ID_Perizinan).padStart(3, '0');
+    
+    const nomorSuratLengkap = `${nomorUrut}/${kodeSurat}/${bulanRomawi}/${tahun}`;
+
     // Format tanggal
     const tanggalKembaliFormatted = data.Tanggal_Kembali
       ? new Date(data.Tanggal_Kembali).toLocaleDateString("id-ID", {
@@ -42,9 +69,8 @@ export const SuratIzinA5 = React.forwardRef<HTMLDivElement, SuratIzinProps>(
         
         <div className="a5-content">
           <h4 className="a5-title">SURAT IZIN KEMBALI</h4>
-          <p className="a5-subtitle">Nomor Surat: {`IZN/${new Date().getFullYear()}/${data.ID_Pengajuan}`}</p>
-
-          {/* FOTO DIHAPUS DARI SINI */}
+          {/* --- NOMOR SURAT DIPERBARUI --- */}
+          <p className="a5-subtitle">Nomor Surat: {nomorSuratLengkap}</p>
 
           <p className="a5-body-text">
             Yang bertanda tangan di bawah ini, Pengurus Pondok Pesantren E-Najah,
@@ -75,9 +101,7 @@ export const SuratIzinA5 = React.forwardRef<HTMLDivElement, SuratIzinProps>(
           </p>
         </div>
         
-        {/* FOOTER DIPERBARUI */}
         <div className="a5-footer">
-          {/* FOTO DIPINDAH KE SINI (KIRI) */}
           <div className="a5-photo-container">
             {data.foto ? (
               <img 
@@ -92,7 +116,6 @@ export const SuratIzinA5 = React.forwardRef<HTMLDivElement, SuratIzinProps>(
             )}
           </div>
           
-          {/* TANDA TANGAN (KANAN) */}
           <div className="a5-ttd">
             <p>Sumbersuko, {tanggalCetak}</p>
             <p>Menyetujui,</p>

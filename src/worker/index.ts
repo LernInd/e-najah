@@ -79,6 +79,8 @@ adminApi.use("*", async (c, next) => {
   return jwtMiddleware(c, next);
 });
 
+// ... (Endpoint /profile, /santri/stats, /santri/create, /santri/search, /santri/:id, /perizinan/search-santri, /perizinan/create, /perizinan/pending, /perizinan/update-status, /perizinan/all, /perizinan/aktif - TIDAK BERUBAH)
+
 // Endpoint [GET] /api/admin/profile
 adminApi.get("/profile", (c) => {
   const payload = c.get("jwtPayload");
@@ -87,7 +89,6 @@ adminApi.get("/profile", (c) => {
 
 // Endpoint [GET] /api/admin/santri/stats
 adminApi.get("/santri/stats", async (c) => {
-  // ... (Kode statistik Anda - tidak berubah)
   try {
     const [
       putra, putri, totalSantri, totalAlumni, totalPengurus, totalPengabdi
@@ -115,7 +116,6 @@ adminApi.get("/santri/stats", async (c) => {
 
 // Endpoint [POST] /api/admin/santri/create
 adminApi.post("/santri/create", async (c) => {
-  // ... (Kode tambah santri Anda - tidak berubah)
   try {
     const formData = await c.req.formData();
     const foto = formData.get("foto") as File | null;
@@ -152,7 +152,6 @@ adminApi.post("/santri/create", async (c) => {
 
 // Endpoint [GET] /api/admin/santri/search
 adminApi.get("/santri/search", async (c) => {
-  // ... (Kode pencarian Anda - tidak berubah)
   try {
     const query = c.req.query("q") || "";
     const page = parseInt(c.req.query("page") || "1");
@@ -174,7 +173,6 @@ adminApi.get("/santri/search", async (c) => {
 
 // Endpoint [GET] /api/admin/santri/:id
 adminApi.get("/santri/:id", async (c) => {
-  // ... (Kode detail santri Anda - tidak berubah)
   try {
     const id = c.req.param("id");
     const stmt = c.env.DB.prepare("SELECT * FROM santri WHERE id = ?");
@@ -192,7 +190,6 @@ adminApi.get("/santri/:id", async (c) => {
 
 // Endpoint [GET] /api/admin/perizinan/search-santri
 adminApi.get("/perizinan/search-santri", async (c) => {
-  // ... (Kode pencarian perizinan Anda - tidak berubah)
   try {
     const query = c.req.query("q") || "";
     if (!query) {
@@ -217,7 +214,6 @@ adminApi.get("/perizinan/search-santri", async (c) => {
 
 // Endpoint [POST] /api/admin/perizinan/create
 adminApi.post("/perizinan/create", async (c) => {
-  // ... (Kode buat pengajuan Anda - tidak berubah)
   try {
     const { 
       santriId, 
@@ -252,7 +248,6 @@ adminApi.post("/perizinan/create", async (c) => {
 
 // Endpoint [GET] /api/admin/perizinan/pending
 adminApi.get("/perizinan/pending", async (c) => {
-  // ... (Kode ambil pengajuan "menunggu" - tidak berubah)
   try {
     const sqlQuery = `
       SELECT 
@@ -271,27 +266,22 @@ adminApi.get("/perizinan/pending", async (c) => {
   }
 });
 
-// --- Endpoint [POST] /api/admin/perizinan/update-status (DIPERBARUI) ---
+// Endpoint [POST] /api/admin/perizinan/update-status
 adminApi.post("/perizinan/update-status", async (c) => {
   try {
     const { pengajuanId, newStatus, tanggalKembali } = await c.req.json();
-    const approverUsername = c.get("jwtPayload").username; // Ambil nama Ndalem
-    
+    const approverUsername = c.get("jwtPayload").username;
     if (!pengajuanId || !newStatus || !['disetujui', 'ditolak'].includes(newStatus)) {
       throw new HTTPException(400, { message: "ID Pengajuan dan status ('disetujui'/'ditolak') diperlukan" });
     }
-    
-    // 1. Update status di tabel 'pengajuan'
     const updateStmt = c.env.DB.prepare(
       "UPDATE pengajuan SET keputusan = ?, disetujui_oleh = ? WHERE ID_Pengajuan = ?"
     );
     await updateStmt.bind(
       newStatus, 
-      (newStatus === 'disetujui' ? approverUsername : null), // Hanya catat nama jika disetujui
+      (newStatus === 'disetujui' ? approverUsername : null),
       pengajuanId
     ).run();
-
-    // 2. Jika disetujui, buat record di tabel 'perizinan'
     if (newStatus === 'disetujui') {
       if (!tanggalKembali) {
         throw new HTTPException(400, { message: "Tanggal Kembali diperlukan untuk menyetujui izin" });
@@ -311,7 +301,6 @@ adminApi.post("/perizinan/update-status", async (c) => {
         tanggalKembali
       ).run();
     }
-
     return c.json({ message: `Status berhasil diubah menjadi ${newStatus}` });
   } catch (e: any) {
     if (e instanceof HTTPException) return e.getResponse();
@@ -320,15 +309,15 @@ adminApi.post("/perizinan/update-status", async (c) => {
   }
 });
 
-// --- Endpoint [GET] /api/admin/perizinan/all (DIPERBARUI) ---
+// Endpoint [GET] /api/admin/perizinan/all
 adminApi.get("/perizinan/all", async (c) => {
   try {
-    // Gabungkan 3 tabel untuk data lengkap
     const sqlQuery = `
       SELECT 
         p.ID_Pengajuan, p.nama_pengajuan, p.keterangan, p.pengaju, p.keputusan, p.disetujui_oleh,
         s.nama_santri, s.foto, s.alamat,
-        i.Tanggal_Kembali
+        i.ID_Perizinan, i.Tanggal_Kembali,
+        i.Keterlambatan_Jam
       FROM pengajuan p
       JOIN santri s ON p.ID_santri = s.id
       LEFT JOIN perizinan i ON p.ID_Pengajuan = i.ID_Pengajuan
@@ -339,6 +328,134 @@ adminApi.get("/perizinan/all", async (c) => {
   } catch (e: any) {
     console.error(e);
     return c.json({ error: "Gagal mengambil semua data pengajuan", message: e.message }, 500);
+  }
+});
+
+// Endpoint [GET] /api/admin/perizinan/aktif
+adminApi.get("/perizinan/aktif", async (c) => {
+  try {
+    const sqlQuery = `
+      SELECT 
+        i.ID_Perizinan, i.Tanggal_Kembali,
+        s.nama_santri,
+        p.nama_pengajuan
+      FROM perizinan i
+      JOIN santri s ON i.ID_Santri = s.id
+      JOIN pengajuan p ON i.ID_Pengajuan = p.ID_Pengajuan
+      WHERE i.Status_Kembali = 'Belum Kembali'
+      ORDER BY i.Tanggal_Kembali ASC;
+    `;
+    const { results } = await c.env.DB.prepare(sqlQuery).all();
+    return c.json({ results });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ error: "Gagal mengambil data izin aktif", message: e.message }, 500);
+  }
+});
+
+// --- Endpoint [POST] /api/admin/perizinan/tandai-kembali (DIPERBARUI) ---
+adminApi.post("/perizinan/tandai-kembali", async (c) => {
+  try {
+    // Ambil data dari form
+    const { perizinanId, statusKembali, keterlambatanHari, keterlambatanJam } = await c.req.json();
+    const actualReturnTime = new Date().toISOString();
+
+    if (!perizinanId || !statusKembali || !['Tepat Waktu', 'Terlambat'].includes(statusKembali)) {
+      throw new HTTPException(400, { message: "ID Perizinan dan Status Kembali ('Tepat Waktu'/'Terlambat') diperlukan" });
+    }
+    
+    // Konversi hari ke jam
+    let totalKeterlambatanJam = 0;
+    if (statusKembali === 'Terlambat') {
+      const hari = Math.max(0, parseInt(keterlambatanHari) || 0);
+      const jam = Math.max(0, parseInt(keterlambatanJam) || 0);
+      totalKeterlambatanJam = (hari * 24) + jam;
+    }
+
+    // Update database
+    const updateStmt = c.env.DB.prepare(
+      "UPDATE perizinan SET Status_Kembali = ?, Tanggal_Aktual_Kembali = ?, Keterlambatan_Jam = ? WHERE ID_Perizinan = ?"
+    );
+    await updateStmt.bind(
+      statusKembali, 
+      actualReturnTime, 
+      totalKeterlambatanJam, // Simpan total jam
+      perizinanId
+    ).run();
+
+    return c.json({ 
+      message: "Kepulangan santri berhasil dicatat.",
+      status: statusKembali,
+      keterlambatanJam: totalKeterlambatanJam
+    });
+
+  } catch (e: any) {
+    if (e instanceof HTTPException) return e.getResponse();
+    console.error(e);
+    return c.json({ error: "Gagal mencatat kepulangan", message: e.message }, 500);
+  }
+});
+
+
+// --- Endpoint CRUD Sanksi ---
+adminApi.get("/sanksi/list", async (c) => {
+  // ... (Kode daftar sanksi - tidak berubah)
+  try {
+    const { results } = await c.env.DB.prepare(
+      "SELECT * FROM sanksi_aturan WHERE is_active = 1 ORDER BY Min_Keterlambatan_Jam ASC"
+    ).all();
+    return c.json({ results });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ error: "Gagal mengambil daftar sanksi", message: e.message }, 500);
+  }
+});
+adminApi.post("/sanksi/create", async (c) => {
+  // ... (Kode buat sanksi - tidak berubah)
+  try {
+    const { minJam, keterangan } = await c.req.json();
+    if (!minJam || !keterangan) {
+      throw new HTTPException(400, { message: "Jam minimal dan keterangan diperlukan" });
+    }
+    await c.env.DB.prepare(
+      "INSERT INTO sanksi_aturan (Min_Keterlambatan_Jam, Keterangan_Sanksi) VALUES (?, ?)"
+    ).bind(minJam, keterangan).run();
+    return c.json({ message: "Aturan sanksi berhasil dibuat" }, 201);
+  } catch (e: any) {
+    if (e instanceof HTTPException) return e.getResponse();
+    console.error(e);
+    return c.json({ error: "Gagal membuat sanksi", message: e.message }, 500);
+  }
+});
+adminApi.put("/sanksi/update/:id", async (c) => {
+  // ... (Kode update sanksi - tidak berubah)
+  try {
+    const id = c.req.param("id");
+    const { minJam, keterangan } = await c.req.json();
+    if (!minJam || !keterangan) {
+      throw new HTTPException(400, { message: "Jam minimal dan keterangan diperlukan" });
+    }
+    await c.env.DB.prepare(
+      "UPDATE sanksi_aturan SET Min_Keterlambatan_Jam = ?, Keterangan_Sanksi = ? WHERE ID_Sanksi = ?"
+    ).bind(minJam, keterangan, id).run();
+    return c.json({ message: "Aturan sanksi berhasil diperbarui" });
+  } catch (e: any) {
+    if (e instanceof HTTPException) return e.getResponse();
+    console.error(e);
+    return c.json({ error: "Gagal memperbarui sanksi", message: e.message }, 500);
+  }
+});
+adminApi.delete("/sanksi/delete/:id", async (c) => {
+  // ... (Kode soft delete sanksi - tidak berubah)
+  try {
+    const id = c.req.param("id");
+    await c.env.DB.prepare(
+      "UPDATE sanksi_aturan SET is_active = 0 WHERE ID_Sanksi = ?"
+    ).bind(id).run();
+    return c.json({ message: "Aturan sanksi berhasil dihapus" });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ error: "Gagal menghapus sanksi", message: e.message }, 500);
   }
 });
 
