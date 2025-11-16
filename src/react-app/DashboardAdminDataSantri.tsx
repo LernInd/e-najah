@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import "./App.css";
-import "./DashboardAdminDataSantri.css";
+// GANTI CSS
+import "./DashboardAdminDataSantri.css"; // Tetap impor untuk style non-layout
+import "./DashboardLayout.css"; // <-- CSS BARU
+import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
 
 // --- Tipe Data ---
 type UserData = {
@@ -18,7 +21,7 @@ type SantriStats = {
   totalPengurus: number;
   totalPengabdi: number;
 };
-type SantriStatus = 'santri' | 'alumni' | 'pengurus' | 'pengabdi';
+type SantriStatus = "santri" | "alumni" | "pengurus" | "pengabdi";
 type SantriSearchResult = {
   id: number;
   nama_santri: string;
@@ -50,35 +53,8 @@ interface DashboardAdminDataSantriProps {
 const getToken = (): string | null => localStorage.getItem("token");
 
 // =======================================================
-// Komponen Navbar (Tidak Berubah)
+// Komponen Navbar (DIHAPUS)
 // =======================================================
-interface NavbarProps {
-  loggedInUser: UserData;
-  handleLogout: () => void;
-  activeView: View;
-  onNavigate: (view: View) => void;
-}
-const Navbar: React.FC<NavbarProps> = ({ loggedInUser, handleLogout, activeView, onNavigate }) => {
-  return (
-    <nav className="dashboard-navbar">
-      <div className="navbar-brand">E-Najah</div>
-      <div className="navbar-links">
-        <button className={activeView === 'dashboard' ? 'active' : ''} onClick={() => onNavigate('dashboard')}>
-          Dashboard
-        </button>
-        <button className={activeView === 'tambah' ? 'active' : ''} onClick={() => onNavigate('tambah')}>
-          Tambah Santri
-        </button>
-      </div>
-      <div className="navbar-user">
-        <span>Halo, {loggedInUser.username}</span>
-        <button onClick={handleLogout} className="logout-button">
-          Logout
-        </button>
-      </div>
-    </nav>
-  );
-};
 
 // =======================================================
 // "Halaman" Dashboard (Statistik + Pencarian) (Tidak Berubah)
@@ -87,14 +63,15 @@ interface DashboardViewProps {
   onShowDetail: (id: number) => void;
 }
 const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
-  // ... (Semua state dan fungsi di sini tidak berubah)
   const [stats, setStats] = useState<SantriStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [statsError, setStatsError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
-  const [searchResults, setSearchResults] = useState<SantriSearchResult[] | null>(null);
+  const [searchResults, setSearchResults] = useState<
+    SantriSearchResult[] | null
+  >(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -119,15 +96,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
       setIsLoadingStats(false);
     }
   };
-  
+
   const fetchSearchResults = async (query: string, page: number) => {
     setIsSearching(true);
     setSearchError("");
     try {
       const token = getToken();
-      const response = await fetch(`/api/admin/santri/search?q=${encodeURIComponent(query)}&page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `/api/admin/santri/search?q=${encodeURIComponent(query)}&page=${page}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Gagal mencari data");
       setSearchResults(data.results);
@@ -162,27 +142,66 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
       <h2>Ringkasan Data Santri</h2>
       {statsError && <p className="error-message">{statsError}</p>}
       <div className="stats-container">
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.totalSantri}</h3> <p>Santri Aktif</p> </div>
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.putra}</h3> <p>Putra Aktif</p> </div>
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.putri}</h3> <p>Putri Aktif</p> </div>
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.totalPengurus}</h3> <p>Pengurus</p> </div>
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.totalPengabdi}</h3> <p>Pengabdi</p> </div>
-        <div className="stat-card"> <h3>{isLoadingStats ? "..." : stats?.totalAlumni}</h3> <p>Alumni</p> </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.totalSantri}</h3>
+          <p>Santri Aktif</p>
+        </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.putra}</h3> <p>Putra Aktif</p>
+        </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.putri}</h3> <p>Putri Aktif</p>
+        </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.totalPengurus}</h3>
+          <p>Pengurus</p>
+        </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.totalPengabdi}</h3>
+          <p>Pengabdi</p>
+        </div>
+        <div className="stat-card">
+          <h3>{isLoadingStats ? "..." : stats?.totalAlumni}</h3>
+          <p>Alumni</p>
+        </div>
       </div>
       <div className="search-section">
-        <h2 style={{ marginTop: '3rem' }}>Cari Data Santri</h2>
+        <h2 style={{ marginTop: "3rem" }}>Cari Data Santri</h2>
         <form onSubmit={handleSearchSubmit}>
           <div className="search-bar">
-            <input type="text" placeholder="Cari berdasarkan nama santri..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} disabled={isSearching} />
-            <button type="submit" className="login-button" disabled={isSearching}>
+            <input
+              type="text"
+              placeholder="Cari berdasarkan nama santri..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={isSearching}
+            />
+            <button
+              type="submit"
+              className="login-button"
+              disabled={isSearching}
+            >
               {isSearching ? "..." : "Cari"}
             </button>
           </div>
         </form>
-        {isSearching && <p style={{ textAlign: 'center', marginTop: '2rem' }}>Mencari...</p>}
+        {isSearching && (
+          <p style={{ textAlign: "center", marginTop: "2rem" }}>Mencari...</p>
+        )}
         {searchError && <p className="error-message">{searchError}</p>}
-        {searchResults && <SearchResultsList results={searchResults} onDetailClick={onShowDetail} />}
-        {searchResults && totalPages > 1 && <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+        {searchResults && (
+          <SearchResultsList
+            results={searchResults}
+            onDetailClick={onShowDetail}
+          />
+        )}
+        {searchResults && totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
     </div>
   );
@@ -195,22 +214,37 @@ interface SearchResultsListProps {
   results: SantriSearchResult[];
   onDetailClick: (id: number) => void;
 }
-const SearchResultsList: React.FC<SearchResultsListProps> = ({ results, onDetailClick }) => {
-  // ... (Tidak ada perubahan)
+const SearchResultsList: React.FC<SearchResultsListProps> = ({
+  results,
+  onDetailClick,
+}) => {
   if (results.length === 0) {
-    return <p style={{ textAlign: 'center', color: '#888', marginTop: '2rem' }}>Tidak ada data santri yang ditemukan.</p>;
+    return (
+      <p style={{ textAlign: "center", color: "#888", marginTop: "2rem" }}>
+        Tidak ada data santri yang ditemukan.
+      </p>
+    );
   }
   return (
     <div className="search-results-container">
       <table className="results-table">
-        <thead> <tr> <th>Nama Santri</th> <th>L/P</th> <th>Aksi</th> </tr> </thead>
+        <thead>
+          <tr>
+            <th>Nama Santri</th>
+            <th>L/P</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
         <tbody>
           {results.map((santri) => (
             <tr key={santri.id}>
               <td>{santri.nama_santri}</td>
               <td>{santri.jenis_kelamin}</td>
               <td>
-                <button className="detail-button" onClick={() => onDetailClick(santri.id)}>
+                <button
+                  className="detail-button"
+                  onClick={() => onDetailClick(santri.id)}
+                >
                   Lihat Detail
                 </button>
               </td>
@@ -230,15 +264,26 @@ interface PaginationControlsProps {
   totalPages: number;
   onPageChange: (page: number) => void;
 }
-const PaginationControls: React.FC<PaginationControlsProps> = ({ currentPage, totalPages, onPageChange }) => {
-  // ... (Tidak ada perubahan)
+const PaginationControls: React.FC<PaginationControlsProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) => {
   return (
     <div className="pagination-controls">
-      <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage <= 1}>
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage <= 1}
+      >
         &larr; Sebelumnya
       </button>
-      <span> Halaman {currentPage} dari {totalPages} </span>
-      <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage >= totalPages}>
+      <span>
+        Halaman {currentPage} dari {totalPages}
+      </span>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage >= totalPages}
+      >
         Selanjutnya &rarr;
       </button>
     </div>
@@ -246,7 +291,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({ currentPage, to
 };
 
 // =======================================================
-// "Halaman" Tambah Santri (Form) (DIPERBARUI)
+// "Halaman" Tambah Santri (Form) (Tidak Berubah)
 // =======================================================
 const TambahSantriView = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -256,7 +301,7 @@ const TambahSantriView = () => {
   const [namaSantri, setNamaSantri] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
   const [jenisKelamin, setJenisKelamin] = useState<"L" | "P">("L");
-  const [statusSantri, setStatusSantri] = useState<SantriStatus>('santri');
+  const [statusSantri, setStatusSantri] = useState<SantriStatus>("santri");
   const [alamat, setAlamat] = useState("");
   const [namaIbu, setNamaIbu] = useState("");
   const [kontakIbu, setKontakIbu] = useState("");
@@ -264,26 +309,20 @@ const TambahSantriView = () => {
   const [kontakAyah, setKontakAyah] = useState("");
   const [namaWali, setNamaWali] = useState("");
   const [kontakWali, setKontakWali] = useState("");
-  
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // HAPUS validasi foto
-    // if (!foto) {
-    //   setError("Foto santri wajib diisi.");
-    //   return;
-    // }
     setIsLoading(true);
     setError("");
     setSuccess("");
 
     const formData = new FormData();
     formData.append("nama_santri", namaSantri);
-    
-    // HANYA append foto jika ada
+
     if (foto) {
       formData.append("foto", foto);
     }
-    
+
     formData.append("jenis_kelamin", jenisKelamin);
     formData.append("status_santri", statusSantri);
     formData.append("alamat", alamat);
@@ -326,31 +365,130 @@ const TambahSantriView = () => {
   };
 
   return (
-    <div className="login-form" style={{ maxWidth: '600px' }}>
+    <div className="login-form" style={{ maxWidth: "600px" }}>
       <h2>Tambah Data Santri Baru</h2>
       {error && <p className="error-message">{error}</p>}
       {success && <p className="success-message">{success}</p>}
       <form onSubmit={handleSubmit}>
         <div className="form-grid">
-          <div className="form-group form-span-2"> <label htmlFor="nama_santri">Nama Santri *</label> <input type="text" id="nama_santri" required value={namaSantri} onChange={(e) => setNamaSantri(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="jenis_kelamin">Jenis Kelamin *</label> <select id="jenis_kelamin" required value={jenisKelamin} onChange={(e) => setJenisKelamin(e.target.value as "L" | "P")}> <option value="L">Laki-laki (L)</option> <option value="P">Perempuan (P)</option> </select> </div>
-          <div className="form-group"> <label htmlFor="status_santri">Status Santri *</label> <select id="status_santri" required value={statusSantri} onChange={(e) => setStatusSantri(e.target.value as SantriStatus)}> <option value="santri">Santri Aktif</option> <option value="alumni">Alumni</option> <option value="pengurus">Pengurus</option> <option value="pengabdi">Pengabdi</option> </select> </div>
-          
-          {/* Input foto HAPUS 'required' */}
           <div className="form-group form-span-2">
-            <label htmlFor="foto">Foto Santri (Opsional)</label>
-            <input type="file" id="foto" accept="image/png, image/jpeg" onChange={(e) => setFoto(e.target.files ? e.target.files[0] : null)} />
+            <label htmlFor="nama_santri">Nama Santri *</label>
+            <input
+              type="text"
+              id="nama_santri"
+              required
+              value={namaSantri}
+              onChange={(e) => setNamaSantri(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="jenis_kelamin">Jenis Kelamin *</label>
+            <select
+              id="jenis_kelamin"
+              required
+              value={jenisKelamin}
+              onChange={(e) => setJenisKelamin(e.target.value as "L" | "P")}
+            >
+              <option value="L">Laki-laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="status_santri">Status Santri *</label>
+            <select
+              id="status_santri"
+              required
+              value={statusSantri}
+              onChange={(e) => setStatusSantri(e.target.value as SantriStatus)}
+            >
+              <option value="santri">Santri Aktif</option>
+              <option value="alumni">Alumni</option>
+              <option value="pengurus">Pengurus</option>
+              <option value="pengabdi">Pengabdi</option>
+            </select>
           </div>
 
-          <div className="form-group form-span-2"> <label htmlFor="alamat">Alamat</label> <textarea id="alamat" value={alamat} onChange={(e) => setAlamat(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="nama_ayah">Nama Ayah</label> <input type="text" id="nama_ayah" value={namaAyah} onChange={(e) => setNamaAyah(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="kontak_ayah">Kontak Ayah</label> <input type="text" id="kontak_ayah" value={kontakAyah} onChange={(e) => setKontakAyah(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="nama_ibu">Nama Ibu</label> <input type="text" id="nama_ibu" value={namaIbu} onChange={(e) => setNamaIbu(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="kontak_ibu">Kontak Ibu</label> <input type="text" id="kontak_ibu" value={kontakIbu} onChange={(e) => setKontakIbu(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="nama_wali">Nama Wali (jika ada)</label> <input type="text" id="nama_wali" value={namaWali} onChange={(e) => setNamaWali(e.target.value)} /> </div>
-          <div className="form-group"> <label htmlFor="kontak_wali">Kontak Wali</label> <input type="text" id="kontak_wali" value={kontakWali} onChange={(e) => setKontakWali(e.target.value)} /> </div>
+          <div className="form-group form-span-2">
+            <label htmlFor="foto">Foto Santri (Opsional)</label>
+            <input
+              type="file"
+              id="foto"
+              accept="image/png, image/jpeg"
+              onChange={(e) =>
+                setFoto(e.target.files ? e.target.files[0] : null)
+              }
+            />
+          </div>
+
+          <div className="form-group form-span-2">
+            <label htmlFor="alamat">Alamat</label>
+            <textarea
+              id="alamat"
+              value={alamat}
+              onChange={(e) => setAlamat(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="nama_ayah">Nama Ayah</label>
+            <input
+              type="text"
+              id="nama_ayah"
+              value={namaAyah}
+              onChange={(e) => setNamaAyah(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="kontak_ayah">Kontak Ayah</label>
+            <input
+              type="text"
+              id="kontak_ayah"
+              value={kontakAyah}
+              onChange={(e) => setKontakAyah(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="nama_ibu">Nama Ibu</label>
+            <input
+              type="text"
+              id="nama_ibu"
+              value={namaIbu}
+              onChange={(e) => setNamaIbu(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="kontak_ibu">Kontak Ibu</label>
+            <input
+              type="text"
+              id="kontak_ibu"
+              value={kontakIbu}
+              onChange={(e) => setKontakIbu(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="nama_wali">Nama Wali (jika ada)</label>
+            <input
+              type="text"
+              id="nama_wali"
+              value={namaWali}
+              onChange={(e) => setNamaWali(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="kontak_wali">Kontak Wali</label>
+            <input
+              type="text"
+              id="kontak_wali"
+              value={kontakWali}
+              onChange={(e) => setKontakWali(e.target.value)}
+            />
+          </div>
         </div>
-        <button type="submit" className="login-button" disabled={isLoading} style={{marginTop: '1rem'}}>
+        <button
+          type="submit"
+          className="login-button"
+          disabled={isLoading}
+          style={{ marginTop: "1rem" }}
+        >
           {isLoading ? "Menyimpan..." : "Simpan Data Santri"}
         </button>
       </form>
@@ -359,20 +497,22 @@ const TambahSantriView = () => {
 };
 
 // =======================================================
-// "Halaman" Detail Santri (DIPERBARUI)
+// "Halaman" Detail Santri (Tidak Berubah)
 // =======================================================
 interface DetailSantriViewProps {
   santriId: number;
   onBack: () => void;
 }
-const DetailSantriView: React.FC<DetailSantriViewProps> = ({ santriId, onBack }) => {
+const DetailSantriView: React.FC<DetailSantriViewProps> = ({
+  santriId,
+  onBack,
+}) => {
   const [santri, setSantri] = useState<SantriDataLengkap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDetail = async () => {
-      // ... (Fungsi fetchDetail - tidak berubah)
       setIsLoading(true);
       setError("");
       try {
@@ -396,18 +536,17 @@ const DetailSantriView: React.FC<DetailSantriViewProps> = ({ santriId, onBack })
   }, [santriId]);
 
   return (
-    <div className="login-form" style={{ maxWidth: '700px' }}>
+    <div className="login-form" style={{ maxWidth: "700px" }}>
       <button onClick={onBack} className="back-button">
         &larr; Kembali ke Hasil Pencarian
       </button>
       <h2>Detail Data Santri</h2>
-      
+
       {isLoading && <p>Memuat data...</p>}
       {error && <p className="error-message">{error}</p>}
-      
+
       {santri && (
         <div className="detail-view-container">
-          {/* --- TAMPILAN FOTO (DIPERBARUI) --- */}
           <div className="detail-photo">
             {santri.foto ? (
               <img src={`/api/images/${santri.foto}`} alt={santri.nama_santri} />
@@ -417,18 +556,42 @@ const DetailSantriView: React.FC<DetailSantriViewProps> = ({ santriId, onBack })
               </div>
             )}
           </div>
-          
+
           <div className="detail-info-grid">
-            <div className="detail-item detail-span-2"> <label>Nama Lengkap</label> <p>{santri.nama_santri}</p> </div>
-            <div className="detail-item"> <label>Jenis Kelamin</label> <p>{santri.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}</p> </div>
-            <div className="detail-item"> <label>Status Santri</label> <p className={`status-badge ${santri.status_santri}`}> {santri.status_santri} </p> </div>
-            <div className="detail-item detail-span-2"> <label>Alamat</label> <p>{santri.alamat || "-"}</p> </div>
-            <div className="detail-item"> <label>Nama Ayah</label> <p>{santri.nama_ayah || "-"}</p> </div>
-            <div className="detail-item"> <label>Kontak Ayah</label> <p>{santri.kontak_ayah || "-"}</p> </div>
-            <div className="detail-item"> <label>Nama Ibu</label> <p>{santri.nama_ibu || "-"}</p> </div>
-            <div className="detail-item"> <label>Kontak Ibu</label> <p>{santri.kontak_ibu || "-"}</p> </div>
-            <div className="detail-item"> <label>Nama Wali</label> <p>{santri.nama_wali || "-"}</p> </div>
-            <div className="detail-item"> <label>Kontak Wali</label> <p>{santri.kontak_wali || "-"}</p> </div>
+            <div className="detail-item detail-span-2">
+              <label>Nama Lengkap</label> <p>{santri.nama_santri}</p>
+            </div>
+            <div className="detail-item">
+              <label>Jenis Kelamin</label>
+              <p>{santri.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Status Santri</label>
+              <p className={`status-badge ${santri.status_santri}`}>
+                {santri.status_santri}
+              </p>
+            </div>
+            <div className="detail-item detail-span-2">
+              <label>Alamat</label> <p>{santri.alamat || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Nama Ayah</label> <p>{santri.nama_ayah || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Kontak Ayah</label> <p>{santri.kontak_ayah || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Nama Ibu</label> <p>{santri.nama_ibu || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Kontak Ibu</label> <p>{santri.kontak_ibu || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Nama Wali</label> <p>{santri.nama_wali || "-"}</p>
+            </div>
+            <div className="detail-item">
+              <label>Kontak Wali</label> <p>{santri.kontak_wali || "-"}</p>
+            </div>
           </div>
         </div>
       )}
@@ -436,17 +599,17 @@ const DetailSantriView: React.FC<DetailSantriViewProps> = ({ santriId, onBack })
   );
 };
 
-
 // =======================================================
-// Komponen Utama Dashboard (Router Internal) (Tidak Berubah)
+// Komponen Utama Dashboard (Router Internal) (DIPERBARUI)
 // =======================================================
 const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({
   loggedInUser,
   handleLogout,
 }) => {
-  // ... (Tidak ada perubahan)
   const [view, setView] = useState<View>("dashboard");
-  const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
+  const [selectedSantriId, setSelectedSantriId] = useState<number | null>(
+    null
+  );
 
   const handleShowDetail = (id: number) => {
     setSelectedSantriId(id);
@@ -458,27 +621,48 @@ const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({
     setView("dashboard");
   };
 
+  // --- Definisikan Navigasi untuk Sidebar ---
+  const navLinks = [
+    { key: "dashboard", label: "Dashboard" },
+    { key: "tambah", label: "Tambah Santri" },
+  ];
+
+  // Tentukan view yang aktif untuk highlight link
+  const getActiveViewForNav = () => {
+    if (view === "detail") return "dashboard"; // Anggap 'detail' bagian dari 'dashboard'
+    return view;
+  };
+
   return (
-    <div className="dashboard-layout">
-      <Navbar 
+    // Gunakan layout baru
+    <div className="sidebar-layout">
+      <Sidebar
         loggedInUser={loggedInUser}
         handleLogout={handleLogout}
-        activeView={view}
+        activeView={getActiveViewForNav()}
         onNavigate={(v) => {
-          setView(v);
+          setView(v as View);
           setSelectedSantriId(null);
         }}
+        navLinks={navLinks}
+        brandName="E-Najah Data Santri"
       />
-      <main className="dashboard-content">
-        {view === 'dashboard' && <DashboardView onShowDetail={handleShowDetail} />}
-        {view === 'tambah' && <TambahSantriView />} 
-        {view === 'detail' && selectedSantriId && (
-          <DetailSantriView 
-            santriId={selectedSantriId} 
-            onBack={handleBackToDashboard} 
-          />
-        )}
-      </main>
+      {/* Ganti <main> lama dengan <div> baru */}
+      <div className="dashboard-content-main">
+        {/* Pindahkan class "dashboard-content" ke sini */}
+        <main className="dashboard-content">
+          {view === "dashboard" && (
+            <DashboardView onShowDetail={handleShowDetail} />
+          )}
+          {view === "tambah" && <TambahSantriView />}
+          {view === "detail" && selectedSantriId && (
+            <DetailSantriView
+              santriId={selectedSantriId}
+              onBack={handleBackToDashboard}
+            />
+          )}
+        </main>
+      </div>
     </div>
   );
 };

@@ -1,26 +1,6 @@
 /* src/react-app/DashboardAdminPerizinan.css */
 
 /* === Layout Utama Dashboard === */
-.dashboard-layout {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* === Style Navbar === */
-.dashboard-navbar {
-  width: 100%;
-  padding: 0 2rem;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: var(--color-bg-card);
-  border-bottom: 1px solid var(--color-border);
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
 .navbar-brand {
   font-size: 1.5rem;
   font-weight: 600;

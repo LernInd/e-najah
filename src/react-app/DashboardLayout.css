@@ -1,0 +1,143 @@
+/* src/react-app/DashboardLayout.css */
+
+/* === Layout Utama === */
+.sidebar-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* === Tombol Mobile (Hamburger) === */
+.mobile-nav-toggle {
+  display: none; /* Sembunyi di desktop */
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* === Sidebar (Navigasi Kiri) === */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--color-bg-card);
+  border-right: 1px solid var(--color-border);
+  padding: 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+.sidebar-header {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1; /* Mendorong user-info ke bawah */
+}
+.sidebar-nav button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+  text-align: left;
+}
+.sidebar-nav button:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+}
+.sidebar-nav button.active {
+  color: var(--color-primary);
+  background-color: rgba(16, 185, 129, 0.1);
+  font-weight: 600;
+}
+
+/* Info User & Logout di Bawah */
+.sidebar-user-info {
+  margin-top: 2rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.5rem;
+}
+.sidebar-user-info span {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+.sidebar-user-info .logout-button {
+  width: 100%;
+  margin-top: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* === Konten Utama === */
+.dashboard-content-main {
+  flex-grow: 1;
+  margin-left: 260px; /* Lebar sidebar */
+  background-color: var(--color-bg);
+  min-width: 0; /* Mencegah flexbox overflow */
+}
+
+/* === Responsif (Mobile) === */
+@media (max-width: 768px) {
+  .mobile-nav-toggle {
+    display: block;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%); /* Sembunyikan sidebar ke kiri */
+    z-index: 1000;
+    width: 280px; /* Sedikit lebih lebar di mobile */
+  }
+  .sidebar.open {
+    transform: translateX(0); /* Tampilkan sidebar */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Overlay saat sidebar mobile terbuka */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+  }
+  
+  .dashboard-content-main {
+    margin-left: 0; /* Konten jadi full-width */
+  }
+  
+  /* .dashboard-content ada di file .tsx */
+  .dashboard-content {
+    padding-top: 70px; /* Beri ruang untuk tombol toggle */
+  }
+}
