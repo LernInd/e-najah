@@ -34,11 +34,11 @@ const decodeToken = (token: string): UserData | null => {
 // Komponen SliderPanel (Terisolasi)
 // ===================================================================
 const bannerImages = [
-  "banner1.png",
-  "banner2.png",
-  "banner3.png",
-  "banner4.png",
-  "banner5.png",
+  "banner1.JPG",
+  "banner2.JPG",
+  "banner3.JPG",
+  "banner4.jpg",
+  "banner5.jpg",
 ];
 
 function SliderPanel() {
