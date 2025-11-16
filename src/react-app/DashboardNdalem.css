@@ -1,0 +1,277 @@
+/* src/react-app/DashboardNdalem.css */
+
+/* === Layout Utama Dashboard === */
+.dashboard-layout {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Style Navbar === */
+.dashboard-navbar {
+  width: 100%;
+  padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition: color 0.2s;
+}
+.navbar-brand:hover {
+  color: var(--color-primary);
+}
+.navbar-links {
+  display: flex;
+  gap: 1rem;
+}
+.navbar-links button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.navbar-links button:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+}
+.navbar-links button.active {
+  color: var(--color-primary);
+  background-color: rgba(16, 185, 129, 0.1);
+  font-weight: 600;
+}
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.navbar-user span {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+.navbar-user .logout-button {
+  margin-top: 0;
+  width: auto;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* === Area Konten Dashboard === */
+.dashboard-content {
+  width: 100%;
+  flex-grow: 1;
+  padding: 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: var(--color-bg);
+}
+
+/* === Style Konten === */
+.content-page {
+  width: 100%;
+  max-width: 1000px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+.content-page h2 {
+  font-size: 1.8rem;
+  color: var(--color-text-primary);
+  margin-top: 0;
+}
+.content-page p {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+}
+
+/* === Style Tabel Pengajuan === */
+.approval-table {
+  width: 100%;
+  margin-top: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-bg-card);
+}
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.results-table th,
+.results-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+.results-table th {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  background-color: #F9FAFB;
+}
+.results-table td {
+  color: var(--color-text-primary);
+}
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+.results-table tbody tr:hover {
+  background-color: #F3F4F6;
+}
+.results-table .action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+.approve-button, .reject-button {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid;
+  cursor: pointer;
+}
+.approve-button {
+  color: var(--color-success);
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: var(--color-success);
+}
+.approve-button:hover {
+  background-color: var(--color-success);
+  color: var(--color-text-on-primary);
+}
+.reject-button {
+  color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error);
+}
+.reject-button:hover {
+  background-color: var(--color-error);
+  color: var(--color-text-on-primary);
+}
+
+/* === Style Modal (BARU) === */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+.modal-content {
+  background-color: var(--color-bg-card);
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px; /* Modal persetujuan bisa lebih kecil */
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+.modal-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.modal-close-button:hover {
+  color: var(--color-text-primary);
+  border: none;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.modal-form {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* === Style Info Detail di Modal (BARU) === */
+.detail-info-grid.simple-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.detail-info-grid .detail-item {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+.detail-info-grid .detail-item label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+.detail-info-grid .detail-item p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+.detail-info-grid .detail-item.detail-span-2 {
+  grid-column: span 1;
+}
+
+
+/* === Responsif === */
+@media (max-width: 768px) {
+  .dashboard-navbar {
+    padding: 0 1rem;
+  }
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  .navbar-links {
+    display: none;
+  }
+  .navbar-user span {
+    display: none;
+  }
+  .dashboard-content {
+    padding: 1.5rem 1rem;
+  }
+  .content-page {
+    padding: 1.5rem;
+  }
+  .results-table th,
+  .results-table td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .results-table .action-buttons {
+    flex-direction: column; /* Tumpuk tombol di HP */
+  }
+}

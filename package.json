@@ -15,7 +15,8 @@
   "dependencies": {
     "hono": "4.8.2",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "react-to-print": "^3.2.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.7.5",

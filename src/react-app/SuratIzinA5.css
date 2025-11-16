@@ -1,0 +1,159 @@
+/* src/react-app/SuratIzinA5.css */
+
+/* Sembunyikan saat di layar, hanya tampilkan saat mencetak */
+@media screen {
+  .a5-page-container {
+    display: none;
+  }
+}
+
+/* Atur layout cetak */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .a5-page-container, .a5-page-container * {
+    visibility: visible;
+  }
+  .a5-page-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  @page {
+    size: A5;
+    margin: 1.5cm;
+  }
+}
+
+/* === LAYOUT UTAMA (DIPERBARUI) === */
+.a5-page-container {
+  width: 148mm;
+  min-height: 190mm; /* Tinggi A5 dikurangi margin */
+  padding: 0;
+  margin: 0;
+  font-family: 'Times New Roman', Times, serif;
+  color: #000;
+  background-color: #fff;
+  
+  display: flex;
+  flex-direction: column;
+}
+
+.a5-header {
+  text-align: center;
+  padding-bottom: 5mm;
+  border-bottom: 2px solid #000;
+  flex-shrink: 0;
+}
+.a5-header h3 {
+  font-size: 16pt;
+  margin: 0;
+}
+.a5-header p {
+  font-size: 11pt;
+  margin: 2mm 0;
+}
+.a5-divider {
+  border-top: 1px solid #000;
+  margin-top: 1mm;
+  height: 1px;
+}
+
+.a5-content {
+  margin-top: 5mm;
+  font-size: 12pt;
+  line-height: 1.5;
+  flex-grow: 1; /* Konten akan mengisi ruang yang tersedia */
+}
+.a5-title {
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+  text-decoration: underline;
+  margin: 0 0 1mm 0;
+}
+.a5-subtitle {
+  text-align: center;
+  font-size: 12pt;
+  margin: 0 0 5mm 0;
+}
+
+.a5-body-text {
+  margin: 5mm 0;
+  text-align: justify;
+}
+
+.a5-datatable {
+  margin-left: 1cm;
+  border-collapse: collapse;
+  width: 100%;
+}
+.a5-datatable td {
+  padding: 1mm 0;
+  vertical-align: top;
+}
+.a5-datatable td:first-child {
+  width: 3cm;
+}
+
+/* === POSISI FOTO DIPERBARUI === */
+.a5-photo {
+  /* Hapus float dan position */
+  width: 3cm;
+  height: 4cm;
+  object-fit: cover;
+  border: 1px solid #000;
+}
+
+/* Wrapper baru untuk foto di footer */
+.a5-photo-container {
+  width: 3cm;
+  height: 4cm;
+}
+
+/* Placeholder baru */
+.a5-photo-placeholder {
+  width: 3cm;
+  height: 4cm;
+  border: 1px dashed #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10pt;
+  color: #777;
+}
+
+.a5-tanggal-kembali {
+  font-size: 14pt;
+  font-weight: bold;
+  text-align: center;
+  margin: 5mm 0;
+  /* Hapus clear: both */
+}
+
+/* === POSISI FOOTER DIPERBARUI === */
+.a5-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Foto (kiri) vs TTD (kanan) */
+  align-items: flex-end; /* Selaraskan di bagian bawah */
+  margin-top: auto; /* Mendorong footer ke bawah halaman */
+  padding-top: 1cm;
+  flex-shrink: 0;
+}
+.a5-ttd {
+  text-align: center;
+  /* Hapus width */
+}
+.a5-ttd p {
+  margin: 1mm 0;
+}
+.a5-ttd-space {
+  height: 1.5cm; /* Ruang untuk tanda tangan */
+}
+.a5-ttd-nama {
+  font-weight: bold;
+  text-decoration: underline;
+}

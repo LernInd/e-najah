@@ -1,65 +1,219 @@
-// src/App.tsx
+// src/react-app/App.tsx
 
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import cloudflareLogo from "./assets/Cloudflare_Logo.svg";
-import honoLogo from "./assets/hono.svg";
+import { useState, useEffect, FormEvent } from "react";
 import "./App.css";
+// Impor SEMUA dashboard
+import DashboardAdminPerizinan from "./DashboardAdminPerizinan";
+import DashboardAdminDataSantri from "./DashboardAdminDataSantri";
+import DashboardNdalem from "./DashboardNdalem"; // <-- IMPORT BARU
 
-function App() {
-  const [count, setCount] = useState(0);
-  const [name, setName] = useState("unknown");
+// ===================================================================
+// Tipe dan Fungsi Helper
+// ===================================================================
+type UserData = {
+  id: number;
+  username: string;
+  peran: string;
+};
 
+const getToken = (): string | null => localStorage.getItem("token");
+
+const decodeToken = (token: string): UserData | null => {
+  try {
+    const payloadBase64 = token.split(".")[1];
+    const decodedPayload = atob(payloadBase64);
+    return JSON.parse(decodedPayload);
+  } catch (e) {
+    console.error("Gagal decode token:", e);
+    return null;
+  }
+};
+
+
+// ===================================================================
+// Komponen SliderPanel (Terisolasi)
+// ===================================================================
+const bannerImages = [
+  "banner1.png",
+  "banner2.png",
+  "banner3.png",
+  "banner4.png",
+  "banner5.png",
+];
+
+function SliderPanel() {
+  // ... (Kode SliderPanel - tidak berubah)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://hono.dev/" target="_blank">
-          <img src={honoLogo} className="logo cloudflare" alt="Hono logo" />
-        </a>
-        <a href="https://workers.cloudflare.com/" target="_blank">
-          <img
-            src={cloudflareLogo}
-            className="logo cloudflare"
-            alt="Cloudflare logo"
-          />
-        </a>
-      </div>
-      <h1>Vite + React + Hono + Cloudflare</h1>
-      <div className="card">
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          aria-label="increment"
-        >
-          count is {count}
+    <div className="slider-panel">
+      {bannerImages.map((imageKey, index) => (
+        <img
+          key={imageKey}
+          src={`/api/images/${imageKey}`}
+          alt="Banner"
+          className={`slide ${index === currentImageIndex ? "active" : ""}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ===================================================================
+// Komponen LoginForm (Tidak berubah)
+// ===================================================================
+interface LoginFormProps {
+  username: string;
+  password: string;
+  isLoading: boolean;
+  error: string;
+  setUsername: (val: string) => void;
+  setPassword: (val: string) => void;
+  handleSubmit: (e: FormEvent) => void;
+}
+function LoginForm(props: LoginFormProps) {
+  // ... (Kode LoginForm - tidak berubah)
+  const {
+    username,
+    password,
+    isLoading,
+    error,
+    setUsername,
+    setPassword,
+    handleSubmit,
+  } = props;
+  return (
+    <div className="form-panel">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Selamat Datang</h2>
+        <p>Silakan login untuk melanjutkan.</p>
+        {error && <p className="error-message">{error}</p>}
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
+          <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
+        </div>
+        <button type="submit" className="login-button" disabled={isLoading}>
+          {isLoading ? "Loading..." : "Login"}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      </form>
+    </div>
+  );
+}
+
+
+// ===================================================================
+// Komponen App Utama (Container State) (DIPERBARUI)
+// ===================================================================
+function App() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [loggedInUser, setLoggedInUser] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      const user = decodeToken(token);
+      setLoggedInUser(user);
+    }
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
+    // ... (Fungsi handleSubmit Anda - tidak berubah)
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Login gagal");
+      }
+      localStorage.setItem("token", data.token);
+      const user = decodeToken(data.token);
+      setLoggedInUser(user);
+      setUsername("");
+      setPassword("");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    // ... (Fungsi handleLogout Anda - tidak berubah)
+    localStorage.removeItem("token");
+    setLoggedInUser(null);
+    setError("");
+  };
+
+  // --- Logika Render Utama (DIPERBARUI) ---
+
+  if (!loggedInUser) {
+    // --- TAMPILAN LOGGED OUT ---
+    return (
+      <div className="login-container">
+        <SliderPanel />
+        <LoginForm
+          username={username}
+          password={password}
+          isLoading={isLoading}
+          error={error}
+          setUsername={setUsername}
+          setPassword={setPassword}
+          handleSubmit={handleSubmit}
+        />
       </div>
-      <div className="card">
-        <button
-          onClick={() => {
-            fetch("/api/")
-              .then((res) => res.json() as Promise<{ name: string }>)
-              .then((data) => setName(data.name));
-          }}
-          aria-label="get name"
-        >
-          Name from API is: {name}
-        </button>
-        <p>
-          Edit <code>worker/index.ts</code> to change the name
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the logos to learn more</p>
-    </>
+    );
+  }
+
+  // --- TAMPILAN LOGGED IN ---
+  return (
+    <div className="app-container">
+      {loggedInUser.peran === "admin_perizinan" && (
+        <DashboardAdminPerizinan
+          loggedInUser={loggedInUser}
+          handleLogout={handleLogout}
+        />
+      )}
+      
+      {loggedInUser.peran === "admin_datasantri" && (
+        <DashboardAdminDataSantri
+          loggedInUser={loggedInUser}
+          handleLogout={handleLogout}
+        />
+      )}
+      
+      {/* --- CASE BARU UNTUK NDALEM --- */}
+      {loggedInUser.peran === "ndalem" && (
+        <DashboardNdalem
+          loggedInUser={loggedInUser}
+          handleLogout={handleLogout}
+        />
+      )}
+      
+      {/* Fallback jika peran tidak cocok (auto-logout) */}
+      {loggedInUser.peran !== "admin_perizinan" &&
+        loggedInUser.peran !== "admin_datasantri" &&
+        loggedInUser.peran !== "ndalem" && ( // <-- Tambahkan cek ndalem
+          <>{handleLogout()}</>
+      )}
+    </div>
   );
 }
 

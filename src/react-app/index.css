@@ -1,11 +1,30 @@
+/* src/react-app/index.css */
+
+html {
+  font-size: 16px; /* Menjadi standar emas untuk aksesibilitas */
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* === PALET WARNA (LIGHT MODE) === */
+  --color-primary: #10B981; /* Emerald 500 */
+  --color-primary-hover: #059669; /* Emerald 600 */
+  --color-bg: #F9FAFB; /* Gray 50 */
+  --color-bg-card: #FFFFFF; /* Putih */
+  --color-border: #E5E7EB; /* Gray 200 */
+  --color-text-primary: #111827; /* Gray 900 */
+  --color-text-secondary: #6B7280; /* Gray 500 */
+  --color-text-on-primary: #FFFFFF; /* Teks putih di atas tombol hijau */
+  --color-error: #EF4444; /* Red 500 */
+  --color-success: #22C55E; /* Green 500 */
+  /* ==================================== */
+
+  color-scheme: light;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,11 +34,12 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-primary);
   text-decoration: inherit;
+  transition: color 0.25s;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-primary-hover);
 }
 
 body {
@@ -31,38 +51,33 @@ body {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 3.2rem; /* Diubah ke rem */
   line-height: 1.1;
 }
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
   padding: 0.6em 1.2em;
-  font-size: 1em;
+  font-size: 1rem; /* Diubah ke rem */
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-primary);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+/* === Font Scaling untuk Mobile === */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Sedikit perkecil font dasar di HP */
   }
 }
