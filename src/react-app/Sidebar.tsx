@@ -1,76 +1,49 @@
 // src/react-app/Sidebar.tsx
-import React, { useState } from "react";
-import "./DashboardLayout.css"; // Impor CSS yang baru kita buat
+import React from "react";
+import "./DashboardLayout.css"; // Impor CSS layout
 
-// Tipe data yang dibutuhkan oleh Sidebar
-type UserData = {
-  username: string;
-};
+// Tipe data yang dibutuhkan
 type NavLink = {
   key: string;
   label: string;
 };
 
 interface SidebarProps {
-  loggedInUser: UserData;
-  handleLogout: () => void;
+  isOpen: boolean; 
   activeView: string;
   onNavigate: (view: string) => void;
-  navLinks: NavLink[]; // Daftar link navigasi
-  brandName: string; // Judul sidebar
+  navLinks: NavLink[]; 
+  handleLogout: () => void; // <-- Prop untuk logout
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  loggedInUser,
-  handleLogout,
+  isOpen,
   activeView,
   onNavigate,
   navLinks,
-  brandName,
+  handleLogout, // <-- Ambil prop
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleNavClick = (view: string) => {
-    onNavigate(view);
-    setIsOpen(false); // Tutup sidebar setelah diklik (untuk mobile)
-  };
 
   return (
     <>
-      {/* Tombol Hamburger (hanya tampil di mobile) */}
-      <button
-        className="mobile-nav-toggle"
-        onClick={() => setIsOpen(true)}
-        aria-label="Buka navigasi"
-      >
-        {/* Ikon Hamburger (garis tiga) */}
-        &#9776;
-      </button>
-
-      {/* Overlay (hanya tampil di mobile saat sidebar terbuka) */}
-      {isOpen && (
-        <div className="sidebar-overlay" onClick={() => setIsOpen(false)}></div>
-      )}
-
       {/* Sidebar Utama */}
       <nav className={`sidebar ${isOpen ? "open" : ""}`}>
-        <div className="sidebar-header">{brandName}</div>
-
+        
         <div className="sidebar-nav">
           {navLinks.map((link) => (
             <button
               key={link.key}
               className={activeView === link.key ? "active" : ""}
-              onClick={() => handleNavClick(link.key)}
+              onClick={() => onNavigate(link.key)}
             >
               {link.label}
             </button>
           ))}
         </div>
 
+        {/* Tombol Logout di bawah sidebar */}
         <div className="sidebar-user-info">
-          <span>Halo, {loggedInUser.username}</span>
-          <button onClick={handleLogout} className="logout-button">
+           <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
         </div>

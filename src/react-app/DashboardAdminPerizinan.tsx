@@ -3,10 +3,10 @@
 import React, { useState, useEffect, FormEvent, useMemo, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import "./App.css";
-// GANTI CSS
-import "./DashboardAdminPerizinan.css"; // Tetap impor untuk style non-layout
-import "./DashboardLayout.css"; // <-- CSS BARU
-import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
+import "./DashboardAdminPerizinan.css";
+import "./DashboardLayout.css"; // CSS Layout
+import { Sidebar } from "./Sidebar"; // Sidebar baru
+import { Header } from "./Header"; // Header baru
 import { SuratIzinA5, SuratIzinData } from "./SuratIzinA5";
 
 // --- Tipe Data ---
@@ -14,6 +14,7 @@ type UserData = {
   id: number;
   username: string;
   peran: string;
+  nama_lengkap?: string;
 };
 type PerizinanView =
   | "dashboard"
@@ -83,11 +84,7 @@ interface DashboardAdminPerizinanProps {
 }
 
 // =======================================================
-// Komponen Navbar (DIHAPUS)
-// =======================================================
-
-// =======================================================
-// Komponen Modal Detail Santri (Tidak Berubah)
+// Komponen Modal Detail Santri
 // =======================================================
 interface SantriDetailModalProps {
   santri: SantriDataLengkap;
@@ -146,7 +143,7 @@ const SantriDetailModal: React.FC<SantriDetailModalProps> = ({
 };
 
 // =======================================================
-// Halaman Pengajuan (Pencarian) (Tidak Berubah)
+// Halaman Pengajuan (Pencarian)
 // =======================================================
 interface PengajuanViewProps {
   onSantriSelected: (santri: SantriDataLengkap) => void;
@@ -311,7 +308,7 @@ const PengajuanView: React.FC<PengajuanViewProps> = ({ onSantriSelected }) => {
 };
 
 // =======================================================
-// "Halaman" Form Pengajuan (Tidak Berubah)
+// "Halaman" Form Pengajuan
 // =======================================================
 interface BuatPengajuanFormViewProps {
   santri: SantriDataLengkap;
@@ -426,7 +423,7 @@ const BuatPengajuanFormView: React.FC<BuatPengajuanFormViewProps> = ({
 };
 
 // =======================================================
-// Halaman Placeholder Lainnya (Tidak Berubah)
+// Halaman Placeholder Lainnya
 // =======================================================
 const DashboardView: React.FC = () => {
   return (
@@ -552,7 +549,7 @@ const SuratView: React.FC = () => {
 };
 
 // =======================================================
-// "Halaman" Status Izin (Tidak Berubah)
+// "Halaman" Status Izin
 // =======================================================
 const StatusView: React.FC = () => {
   const [allPengajuan, setAllPengajuan] = useState<SemuaPengajuanData[]>([]);
@@ -667,7 +664,7 @@ const StatusTable: React.FC<{ list: SemuaPengajuanData[] }> = ({ list }) => {
 };
 
 // =======================================================
-// "Halaman" Kembali (Tidak Berubah)
+// "Halaman" Kembali
 // =======================================================
 const KembaliView: React.FC = () => {
   const [izinAktifList, setIzinAktifList] = useState<IzinAktifData[]>([]);
@@ -812,7 +809,7 @@ const KembaliView: React.FC = () => {
 };
 
 // =======================================================
-// Modal Kepulangan (Tidak Berubah)
+// Modal Kepulangan
 // =======================================================
 interface KembaliModalProps {
   izin: IzinAktifData;
@@ -959,6 +956,7 @@ const DashboardAdminPerizinan: React.FC<DashboardAdminPerizinanProps> = ({
   const [view, setView] = useState<PerizinanView>("dashboard");
   const [selectedSantri, setSelectedSantri] =
     useState<SantriDataLengkap | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleGoToPengajuanForm = (santri: SantriDataLengkap) => {
     setSelectedSantri(santri);
@@ -980,7 +978,7 @@ const DashboardAdminPerizinan: React.FC<DashboardAdminPerizinanProps> = ({
       case "surat":
         return <SuratView />;
       case "kembali":
-        return <KembaliView />; // <-- VIEW BARU
+        return <KembaliView />;
       case "buat_pengajuan_form":
         return (
           <BuatPengajuanFormView
@@ -1010,22 +1008,34 @@ const DashboardAdminPerizinan: React.FC<DashboardAdminPerizinanProps> = ({
   };
 
   return (
-    // Gunakan layout baru
     <div className="sidebar-layout">
-      <Sidebar
+      {/* Overlay untuk mobile */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
+      <Header
         loggedInUser={loggedInUser}
         handleLogout={handleLogout}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+
+      <Sidebar
+        isOpen={isSidebarOpen}
         activeView={getActiveViewForNav()}
         onNavigate={(v) => {
           setView(v as PerizinanView);
           setSelectedSantri(null);
+          setIsSidebarOpen(false); // Tutup sidebar di mobile
         }}
         navLinks={navLinks}
-        brandName="E-Najah Perizinan"
+        handleLogout={handleLogout}
       />
-      {/* Ganti <main> lama dengan <div> baru */}
+      
       <div className="dashboard-content-main">
-        {/* Pindahkan class "dashboard-content" ke sini */}
         <main className="dashboard-content">
           {view === "buat_pengajuan_form" && !selectedSantri ? (
             <PengajuanView onSantriSelected={handleGoToPengajuanForm} />

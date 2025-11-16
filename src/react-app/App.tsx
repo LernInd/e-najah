@@ -5,7 +5,7 @@ import "./App.css";
 // Impor SEMUA dashboard
 import DashboardAdminPerizinan from "./DashboardAdminPerizinan";
 import DashboardAdminDataSantri from "./DashboardAdminDataSantri";
-import DashboardNdalem from "./DashboardNdalem"; // <-- IMPORT BARU
+import DashboardNdalem from "./DashboardNdalem";
 
 // ===================================================================
 // Tipe dan Fungsi Helper
@@ -14,6 +14,7 @@ type UserData = {
   id: number;
   username: string;
   peran: string;
+  nama_lengkap?: string; // <-- TAMBAHKAN INI
 };
 
 const getToken = (): string | null => localStorage.getItem("token");
@@ -42,7 +43,6 @@ const bannerImages = [
 ];
 
 function SliderPanel() {
-  // ... (Kode SliderPanel - tidak berubah)
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
@@ -77,7 +77,6 @@ interface LoginFormProps {
   handleSubmit: (e: FormEvent) => void;
 }
 function LoginForm(props: LoginFormProps) {
-  // ... (Kode LoginForm - tidak berubah)
   const {
     username,
     password,
@@ -129,7 +128,6 @@ function App() {
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
-    // ... (Fungsi handleSubmit Anda - tidak berubah)
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -156,7 +154,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    // ... (Fungsi handleLogout Anda - tidak berubah)
     localStorage.removeItem("token");
     setLoggedInUser(null);
     setError("");
@@ -210,7 +207,7 @@ function App() {
       {/* Fallback jika peran tidak cocok (auto-logout) */}
       {loggedInUser.peran !== "admin_perizinan" &&
         loggedInUser.peran !== "admin_datasantri" &&
-        loggedInUser.peran !== "ndalem" && ( // <-- Tambahkan cek ndalem
+        loggedInUser.peran !== "ndalem" && ( 
           <>{handleLogout()}</>
       )}
     </div>

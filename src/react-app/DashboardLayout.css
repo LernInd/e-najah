@@ -7,30 +7,68 @@
   min-height: 100vh;
 }
 
-/* === Tombol Mobile (Hamburger) === */
-.mobile-nav-toggle {
-  display: none; /* Sembunyi di desktop */
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1001;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  width: 44px;
-  height: 44px;
-  font-size: 24px;
-  line-height: 1;
-  padding: 0;
-  cursor: pointer;
-}
-
-/* === Sidebar (Navigasi Kiri) === */
-.sidebar {
-  width: 260px;
-  height: 100vh;
+/* === Header Atas (Fixed) === */
+.dashboard-header {
   position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 1001; /* Di atas sidebar */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* <--- PENTING: Mendorong item ke kiri dan kanan */
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Sisi kiri header (Brand) --- DIHAPUS --- */
+/* .header-brand { ... } */
+
+/* Sisi kanan header (User + Tombol Toggle) */
+.header-right-side {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.header-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.header-user-info span {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.header-user-info .logout-button {
+  margin-top: 0;
+  width: auto;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Tombol Mobile (Hamburger) */
+.mobile-nav-toggle {
+  display: none; /* Sembunyi di desktop */
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  /* Hapus margin-right, karena sekarang ada di kiri */
+}
+
+/* Sidebar (Navigasi Kiri) */
+.sidebar {
+  width: 260px;
+  height: calc(100vh - 70px); /* Di bawah header */
+  position: fixed;
+  top: 70px; /* Di bawah header */
   left: 0;
   background-color: var(--color-bg-card);
   border-right: 1px solid var(--color-border);
@@ -42,17 +80,13 @@
   z-index: 1000;
 }
 .sidebar-header {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 2rem;
-  padding-left: 0.5rem;
+  display: none; 
 }
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  flex-grow: 1; /* Mendorong user-info ke bawah */
+  flex-grow: 1;
 }
 .sidebar-nav button {
   width: 100%;
@@ -76,68 +110,80 @@
   background-color: rgba(16, 185, 129, 0.1);
   font-weight: 600;
 }
-
-/* Info User & Logout di Bawah */
 .sidebar-user-info {
+  display: block;
   margin-top: 2rem;
   border-top: 1px solid var(--color-border);
   padding-top: 1.5rem;
 }
 .sidebar-user-info span {
-  display: block;
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  padding: 0 0.5rem;
+  display: none;
 }
 .sidebar-user-info .logout-button {
   width: 100%;
-  margin-top: 0;
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
 }
 
-/* === Konten Utama === */
+
+/* Konten Utama */
 .dashboard-content-main {
   flex-grow: 1;
   margin-left: 260px; /* Lebar sidebar */
+  margin-top: 70px; /* Tinggi header */
   background-color: var(--color-bg);
-  min-width: 0; /* Mencegah flexbox overflow */
+  min-width: 0; 
+}
+
+/* Overlay untuk mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999; /* Di bawah sidebar, di atas konten */
 }
 
 /* === Responsif (Mobile) === */
 @media (max-width: 768px) {
+  .dashboard-header {
+    padding: 0 1rem;
+  }
+  
+  .header-right-side {
+    gap: 0.5rem;
+  }
+  .header-user-info span {
+    display: inline; 
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .header-user-info .logout-button {
+    display: none; 
+  }
+  
   .mobile-nav-toggle {
-    display: block;
+    display: block; /* Tampilkan tombol hamburger */
   }
   
   .sidebar {
-    transform: translateX(-100%); /* Sembunyikan sidebar ke kiri */
-    z-index: 1000;
-    width: 280px; /* Sedikit lebih lebar di mobile */
+    transform: translateX(-100%); 
+    width: 280px; 
   }
   .sidebar.open {
-    transform: translateX(0); /* Tampilkan sidebar */
+    transform: translateX(0); 
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
   }
   
-  /* Overlay saat sidebar mobile terbuka */
-  .sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 999;
-  }
-  
   .dashboard-content-main {
-    margin-left: 0; /* Konten jadi full-width */
+    margin-left: 0; 
   }
   
-  /* .dashboard-content ada di file .tsx */
   .dashboard-content {
-    padding-top: 70px; /* Beri ruang untuk tombol toggle */
+    padding-top: 1.5rem; 
   }
 }

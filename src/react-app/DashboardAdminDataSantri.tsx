@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import "./App.css";
-// GANTI CSS
-import "./DashboardAdminDataSantri.css"; // Tetap impor untuk style non-layout
+import "./DashboardAdminDataSantri.css";
 import "./DashboardLayout.css"; // <-- CSS BARU
 import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
+import { Header } from "./Header"; // <-- KOMPONEN BARU
 
 // --- Tipe Data ---
 type UserData = {
   id: number;
   username: string;
   peran: string;
+  nama_lengkap?: string;
 };
 type SantriStats = {
   putra: number;
@@ -53,11 +54,7 @@ interface DashboardAdminDataSantriProps {
 const getToken = (): string | null => localStorage.getItem("token");
 
 // =======================================================
-// Komponen Navbar (DIHAPUS)
-// =======================================================
-
-// =======================================================
-// "Halaman" Dashboard (Statistik + Pencarian) (Tidak Berubah)
+// "Halaman" Dashboard (Statistik + Pencarian)
 // =======================================================
 interface DashboardViewProps {
   onShowDetail: (id: number) => void;
@@ -208,7 +205,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
 };
 
 // =======================================================
-// Komponen Tabel Hasil Pencarian (Tidak Berubah)
+// Komponen Tabel Hasil Pencarian
 // =======================================================
 interface SearchResultsListProps {
   results: SantriSearchResult[];
@@ -257,7 +254,7 @@ const SearchResultsList: React.FC<SearchResultsListProps> = ({
 };
 
 // =======================================================
-// Komponen Kontrol Pagination (Tidak Berubah)
+// Komponen Kontrol Pagination
 // =======================================================
 interface PaginationControlsProps {
   currentPage: number;
@@ -291,7 +288,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 };
 
 // =======================================================
-// "Halaman" Tambah Santri (Form) (Tidak Berubah)
+// "Halaman" Tambah Santri (Form)
 // =======================================================
 const TambahSantriView = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -497,7 +494,7 @@ const TambahSantriView = () => {
 };
 
 // =======================================================
-// "Halaman" Detail Santri (Tidak Berubah)
+// "Halaman" Detail Santri
 // =======================================================
 interface DetailSantriViewProps {
   santriId: number;
@@ -610,6 +607,7 @@ const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({
   const [selectedSantriId, setSelectedSantriId] = useState<number | null>(
     null
   );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleShowDetail = (id: number) => {
     setSelectedSantriId(id);
@@ -636,20 +634,33 @@ const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({
   return (
     // Gunakan layout baru
     <div className="sidebar-layout">
-      <Sidebar
+      {/* Overlay untuk mobile */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
+      <Header
         loggedInUser={loggedInUser}
         handleLogout={handleLogout}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+
+      <Sidebar
+        isOpen={isSidebarOpen}
         activeView={getActiveViewForNav()}
         onNavigate={(v) => {
           setView(v as View);
           setSelectedSantriId(null);
+          setIsSidebarOpen(false); // Tutup sidebar di mobile
         }}
         navLinks={navLinks}
-        brandName="E-Najah Data Santri"
+        handleLogout={handleLogout}
       />
-      {/* Ganti <main> lama dengan <div> baru */}
+      
       <div className="dashboard-content-main">
-        {/* Pindahkan class "dashboard-content" ke sini */}
         <main className="dashboard-content">
           {view === "dashboard" && (
             <DashboardView onShowDetail={handleShowDetail} />

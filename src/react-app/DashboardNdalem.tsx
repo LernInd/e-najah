@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import "./App.css";
-// GANTI CSS
-import "./DashboardNdalem.css"; // Tetap impor untuk style non-layout
+import "./DashboardNdalem.css";
 import "./DashboardLayout.css"; // <-- CSS BARU
 import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
+import { Header } from "./Header"; // <-- KOMPONEN BARU
 
 // --- Tipe Data ---
 type UserData = {
   id: number;
   username: string;
   peran: string;
+  nama_lengkap?: string;
 };
-type NdalemView = "persetujuan" | "atur_sanksi"; // <-- DIPERBARUI
+type NdalemView = "persetujuan" | "atur_sanksi";
 type SantriStatus = "santri" | "alumni" | "pengurus" | "pengabdi";
 type PengajuanData = {
   ID_Pengajuan: number;
@@ -41,11 +42,7 @@ interface DashboardNdalemProps {
 const getToken = (): string | null => localStorage.getItem("token");
 
 // =======================================================
-// Komponen Navbar (DIHAPUS)
-// =======================================================
-
-// =======================================================
-// Komponen Modal Persetujuan (Tidak Berubah)
+// Komponen Modal Persetujuan
 // =======================================================
 interface PersetujuanModalProps {
   pengajuan: PengajuanData;
@@ -141,7 +138,7 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
 };
 
 // =======================================================
-// "Halaman" Persetujuan (Tidak Berubah)
+// "Halaman" Persetujuan
 // =======================================================
 interface PersetujuanViewProps {
   // Props tidak diperlukan karena data diambil di dalam
@@ -282,7 +279,7 @@ const PersetujuanView: React.FC<PersetujuanViewProps> = () => {
 };
 
 // =======================================================
-// "Halaman" Atur Sanksi (BARU) (Tidak Berubah)
+// "Halaman" Atur Sanksi
 // =======================================================
 const AturSanksiView: React.FC = () => {
   const [sanksiList, setSanksiList] = useState<SanksiAturan[]>([]);
@@ -507,6 +504,7 @@ const DashboardNdalem: React.FC<DashboardNdalemProps> = ({
   handleLogout,
 }) => {
   const [view, setView] = useState<NdalemView>("persetujuan");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
   const renderView = () => {
     switch (view) {
@@ -528,17 +526,32 @@ const DashboardNdalem: React.FC<DashboardNdalemProps> = ({
   return (
     // Gunakan layout baru
     <div className="sidebar-layout">
-      <Sidebar
+      {/* Overlay untuk mobile */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
+      <Header
         loggedInUser={loggedInUser}
         handleLogout={handleLogout}
-        activeView={view}
-        onNavigate={(v) => setView(v as NdalemView)}
-        navLinks={navLinks}
-        brandName="E-Najah Ndalem"
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      {/* Ganti <main> lama dengan <div> baru */}
+
+      <Sidebar
+        isOpen={isSidebarOpen}
+        activeView={view}
+        onNavigate={(v) => {
+          setView(v as NdalemView);
+          setIsSidebarOpen(false);
+        }}
+        navLinks={navLinks}
+        handleLogout={handleLogout}
+      />
+      
       <div className="dashboard-content-main">
-        {/* Pindahkan class "dashboard-content" ke sini */}
         <main className="dashboard-content">{renderView()}</main>
       </div>
     </div>

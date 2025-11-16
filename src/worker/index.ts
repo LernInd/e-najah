@@ -7,6 +7,7 @@ type JwtPayload = {
   id: number;
   username: string;
   peran: string;
+  nama_lengkap?: string; // <-- TAMBAHKAN INI
   iat: number;
   exp: number;
 };
@@ -17,27 +18,39 @@ const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: JwtPayload } }>()
 // --- Rute Publik ---
 // =======================================================
 app.post("/api/login", async (c) => {
-  // ... (Kode login Anda - tidak berubah)
   try {
     const { username, password } = await c.req.json();
     if (!username || !password) {
       throw new HTTPException(400, { message: "Username dan password diperlukan" });
     }
-    const stmt = c.env.DB.prepare("SELECT * FROM pengguna WHERE username = ?");
+    
+    // --- UBAH DISINI ---
+    // Ambil juga nama_lengkap
+    const stmt = c.env.DB.prepare(
+      "SELECT id, username, password, peran, nama_lengkap FROM pengguna WHERE username = ?"
+    );
     const user = await stmt.bind(username).first<any>();
+    // --- BATAS PERUBAHAN ---
+
     if (!user) {
       throw new HTTPException(404, { message: "Username tidak ditemukan" });
     }
     if (user.password !== password) {
       throw new HTTPException(401, { message: "Password salah" });
     }
+
+    // --- UBAH DISINI ---
+    // Masukkan nama_lengkap ke payload token
     const payload = {
       id: user.id,
       username: user.username,
       peran: user.peran,
+      nama_lengkap: user.nama_lengkap, // <-- TAMBAHKAN INI
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 8,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 8, // 8 jam
     };
+    // --- BATAS PERUBAHAN ---
+
     const token = await sign(payload, c.env.JWT_SECRET);
     return c.json({ token });
   } catch (e: any) {
@@ -79,7 +92,7 @@ adminApi.use("*", async (c, next) => {
   return jwtMiddleware(c, next);
 });
 
-// ... (Endpoint /profile, /santri/stats, /santri/create, /santri/search, /santri/:id, /perizinan/search-santri, /perizinan/create, /perizinan/pending, /perizinan/update-status, /perizinan/all, /perizinan/aktif - TIDAK BERUBAH)
+// ... (Endpoint /profile, /santri/stats, /santri/create, /santri/search, /santri/:id, /perizinan/search-santri, /perizinan/create, /perizinan/pending, /perizinan/update-status, /perizinan/all, /perizinan/aktif, /perizinan/tandai-kembali, /sanksi/* - TIDAK BERUBAH) ...
 
 // Endpoint [GET] /api/admin/profile
 adminApi.get("/profile", (c) => {
@@ -353,10 +366,9 @@ adminApi.get("/perizinan/aktif", async (c) => {
   }
 });
 
-// --- Endpoint [POST] /api/admin/perizinan/tandai-kembali (DIPERBARUI) ---
+// Endpoint [POST] /api/admin/perizinan/tandai-kembali
 adminApi.post("/perizinan/tandai-kembali", async (c) => {
   try {
-    // Ambil data dari form
     const { perizinanId, statusKembali, keterlambatanHari, keterlambatanJam } = await c.req.json();
     const actualReturnTime = new Date().toISOString();
 
@@ -364,7 +376,6 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
       throw new HTTPException(400, { message: "ID Perizinan dan Status Kembali ('Tepat Waktu'/'Terlambat') diperlukan" });
     }
     
-    // Konversi hari ke jam
     let totalKeterlambatanJam = 0;
     if (statusKembali === 'Terlambat') {
       const hari = Math.max(0, parseInt(keterlambatanHari) || 0);
@@ -372,14 +383,13 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
       totalKeterlambatanJam = (hari * 24) + jam;
     }
 
-    // Update database
     const updateStmt = c.env.DB.prepare(
       "UPDATE perizinan SET Status_Kembali = ?, Tanggal_Aktual_Kembali = ?, Keterlambatan_Jam = ? WHERE ID_Perizinan = ?"
     );
     await updateStmt.bind(
       statusKembali, 
       actualReturnTime, 
-      totalKeterlambatanJam, // Simpan total jam
+      totalKeterlambatanJam, 
       perizinanId
     ).run();
 
@@ -399,7 +409,6 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
 
 // --- Endpoint CRUD Sanksi ---
 adminApi.get("/sanksi/list", async (c) => {
-  // ... (Kode daftar sanksi - tidak berubah)
   try {
     const { results } = await c.env.DB.prepare(
       "SELECT * FROM sanksi_aturan WHERE is_active = 1 ORDER BY Min_Keterlambatan_Jam ASC"
@@ -411,7 +420,6 @@ adminApi.get("/sanksi/list", async (c) => {
   }
 });
 adminApi.post("/sanksi/create", async (c) => {
-  // ... (Kode buat sanksi - tidak berubah)
   try {
     const { minJam, keterangan } = await c.req.json();
     if (!minJam || !keterangan) {
@@ -428,7 +436,6 @@ adminApi.post("/sanksi/create", async (c) => {
   }
 });
 adminApi.put("/sanksi/update/:id", async (c) => {
-  // ... (Kode update sanksi - tidak berubah)
   try {
     const id = c.req.param("id");
     const { minJam, keterangan } = await c.req.json();
@@ -446,7 +453,6 @@ adminApi.put("/sanksi/update/:id", async (c) => {
   }
 });
 adminApi.delete("/sanksi/delete/:id", async (c) => {
-  // ... (Kode soft delete sanksi - tidak berubah)
   try {
     const id = c.req.param("id");
     await c.env.DB.prepare(
