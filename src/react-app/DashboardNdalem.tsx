@@ -3,9 +3,9 @@
 import React, { useState, useEffect, FormEvent } from "react";
 import "./App.css";
 import "./DashboardNdalem.css";
-import "./DashboardLayout.css"; // <-- CSS BARU
-import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
-import { Header } from "./Header"; // <-- KOMPONEN BARU
+import "./DashboardLayout.css";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
 
 // --- Tipe Data ---
 type UserData = {
@@ -46,6 +46,16 @@ function escapeInput(str: string): string {
 }
 
 // =======================================================
+// Komponen Header Halaman
+// =======================================================
+const PageHeader: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
+  <div className="page-header-clean">
+    <h2>{title}</h2>
+    <p>{subtitle}</p>
+  </div>
+);
+
+// =======================================================
 // Komponen Modal Persetujuan
 // =======================================================
 interface PersetujuanModalProps {
@@ -61,6 +71,7 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
   const [tanggalKembali, setTanggalKembali] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -92,28 +103,30 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
       setIsLoading(false);
     }
   };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-button" onClick={onClose}>
-          &times;
-        </button>
+        <button className="modal-close-button" onClick={onClose}>&times;</button>
         <h2>Setujui Pengajuan Izin</h2>
-        <div className="detail-info-grid simple-grid">
+        <div className="detail-info-grid">
           <div className="detail-item">
             <label>Nama Santri</label> <p>{pengajuan.nama_santri}</p>
           </div>
           <div className="detail-item">
-            <label>Status Santri</label> <p>{pengajuan.status_santri}</p>
+            <label>Status</label> <p>{pengajuan.status_santri}</p>
           </div>
-          <div className="detail-item detail-span-2">
-            <label>Nama Pengajuan</label> <p>{pengajuan.nama_pengajuan}</p>
+          <div className="detail-item">
+            <label>Keperluan</label> <p>{pengajuan.nama_pengajuan}</p>
           </div>
-          <div className="detail-item detail-span-2">
+          <div className="detail-item">
             <label>Keterangan</label> <p>{pengajuan.keterangan || "-"}</p>
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="modal-form">
+        
+        <hr style={{border:'0', borderTop:'1px solid #eee', margin:'1.5rem 0'}}/>
+        
+        <form onSubmit={handleSubmit}>
           {error && <p className="error-message">{error}</p>}
           <div className="form-group">
             <label htmlFor="tanggal_kembali">
@@ -132,6 +145,7 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
             type="submit"
             className="login-button"
             disabled={isLoading}
+            style={{width:'100%'}}
           >
             {isLoading ? "Menyimpan..." : "Setujui & Simpan"}
           </button>
@@ -142,18 +156,14 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
 };
 
 // =======================================================
-// "Halaman" Persetujuan
+// View: Persetujuan
 // =======================================================
-interface PersetujuanViewProps {
-  // Props tidak diperlukan karena data diambil di dalam
-}
-const PersetujuanView: React.FC<PersetujuanViewProps> = () => {
+const PersetujuanView: React.FC = () => {
   const [pengajuanList, setPengajuanList] = useState<PengajuanData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPengajuan, setSelectedPengajuan] =
-    useState<PengajuanData | null>(null);
+  const [selectedPengajuan, setSelectedPengajuan] = useState<PengajuanData | null>(null);
 
   const fetchPendingPengajuan = async () => {
     setIsLoading(true);
@@ -164,10 +174,12 @@ const PersetujuanView: React.FC<PersetujuanViewProps> = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (!response.ok) {
+      // FIX: Akses data.data.results
+      if (response.ok) {
+        setPengajuanList(data.data?.results || []);
+      } else {
         throw new Error(data.error || "Gagal mengambil data");
       }
-      setPengajuanList(data.results);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -185,92 +197,63 @@ const PersetujuanView: React.FC<PersetujuanViewProps> = () => {
   };
 
   const handleTolakClick = async (id: number) => {
-    if (!window.confirm("Anda yakin ingin MENOLAK pengajuan ini?")) {
-      return;
-    }
+    if (!window.confirm("Anda yakin ingin MENOLAK pengajuan ini?")) return;
     try {
       const token = getToken();
       const response = await fetch("/api/admin/perizinan/update-status", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ pengajuanId: id, newStatus: "ditolak" }),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Gagal menolak pengajuan");
-      }
+      if (!response.ok) throw new Error("Gagal menolak pengajuan");
       alert("Pengajuan berhasil ditolak.");
       fetchPendingPengajuan();
     } catch (err: any) {
-      setError(err.message);
+      alert(err.message);
     }
   };
 
   return (
     <>
-      <div className="content-page">
-        <h2>Daftar Pengajuan Izin (Menunggu)</h2>
-        <p>Tinjau dan setujui atau tolak pengajuan izin yang masuk.</p>
-        {error && <p className="error-message">{error}</p>}
-        {isLoading && <p>Memuat data pengajuan...</p>}
-        {!isLoading && pengajuanList.length === 0 && (
-          <p
-            style={{
-              textAlign: "center",
-              color: "var(--color-text-secondary)",
-              marginTop: "2rem",
-            }}
-          >
-            Tidak ada pengajuan yang menunggu persetujuan.
-          </p>
-        )}
-        {!isLoading && pengajuanList.length > 0 && (
-          <div className="approval-table">
-            <table className="results-table">
-              <thead>
-                <tr>
-                  <th>Nama Santri</th>
-                  <th>Pengajuan</th>
-                  <th>Keterangan</th>
-                  <th>Oleh Admin</th>
-                  <th>Aksi</th>
+      <PageHeader title="Persetujuan Izin" subtitle="Tinjau pengajuan izin santri yang menunggu persetujuan" />
+      
+      {error && <p className="error-message" style={{textAlign:'center'}}>{error}</p>}
+      
+      {isLoading ? <p style={{textAlign:'center', color:'#888'}}>Memuat data...</p> : (
+        <div className="table-card">
+          <table className="results-table">
+            <thead>
+              <tr>
+                <th>Nama Santri</th>
+                <th>Keperluan</th>
+                <th>Keterangan</th>
+                <th>Pengaju</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pengajuanList.length === 0 && (
+                <tr><td colSpan={5} style={{textAlign:'center', padding:'3rem', color:'#999'}}>Tidak ada pengajuan baru.</td></tr>
+              )}
+              {pengajuanList.map((p) => (
+                <tr key={p.ID_Pengajuan}>
+                  <td data-label="Nama">{p.nama_santri} <small style={{color:'#666'}}>({p.status_santri})</small></td>
+                  <td data-label="Keperluan">{p.nama_pengajuan}</td>
+                  <td data-label="Keterangan">{p.keterangan || "-"}</td>
+                  <td data-label="Pengaju">{p.pengaju}</td>
+                  <td data-label="Aksi">
+                    <div className="action-buttons">
+                      <button className="approve-button" onClick={() => handleSetujuiClick(p)}>Setujui</button>
+                      <button className="reject-button" onClick={() => handleTolakClick(p.ID_Pengajuan)}>Tolak</button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {pengajuanList.map((p) => (
-                  <tr key={p.ID_Pengajuan}>
-                    <td>
-                      {p.nama_santri} ({p.status_santri})
-                    </td>
-                    <td>{p.nama_pengajuan}</td>
-                    <td>{p.keterangan || "-"}</td>
-                    <td>{p.pengaju}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="approve-button"
-                          onClick={() => handleSetujuiClick(p)}
-                        >
-                          Setujui...
-                        </button>
-                        <button
-                          className="reject-button"
-                          onClick={() => handleTolakClick(p.ID_Pengajuan)}
-                        >
-                          Tolak
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {isModalOpen && selectedPengajuan && (
         <PersetujuanModal
           pengajuan={selectedPengajuan}
@@ -283,12 +266,12 @@ const PersetujuanView: React.FC<PersetujuanViewProps> = () => {
 };
 
 // =======================================================
-// "Halaman" Atur Sanksi
+// View: Atur Sanksi
 // =======================================================
 const AturSanksiView: React.FC = () => {
   const [sanksiList, setSanksiList] = useState<SanksiAturan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
 
   // State untuk Form
   const [minJam, setMinJam] = useState("");
@@ -305,8 +288,12 @@ const AturSanksiView: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal mengambil data");
-      setSanksiList(data.results);
+      // FIX: Akses data.data.results
+      if (response.ok) {
+        setSanksiList(data.data?.results || []);
+      } else {
+        throw new Error(data.error || "Gagal mengambil data");
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -349,7 +336,7 @@ const AturSanksiView: React.FC = () => {
 
       alert(data.message);
       resetForm();
-      fetchSanksi(); // Muat ulang daftar
+      fetchSanksi();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -361,134 +348,92 @@ const AturSanksiView: React.FC = () => {
     setEditingId(sanksi.ID_Sanksi);
     setMinJam(String(sanksi.Min_Keterlambatan_Jam));
     setKeterangan(sanksi.Keterangan_Sanksi);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = async (id: number) => {
-    if (
-      !window.confirm(
-        "Anda yakin ingin menghapus aturan sanksi ini? (Arsip tidak akan terpengaruh)"
-      )
-    ) {
-      return;
-    }
-    setError("");
+    if (!window.confirm("Anda yakin ingin menghapus aturan sanksi ini?")) return;
     try {
       const token = getToken();
       const response = await fetch(`/api/admin/sanksi/delete/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Gagal menghapus sanksi");
-
-      alert(data.message);
-      fetchSanksi(); // Muat ulang daftar
+      if (!response.ok) throw new Error("Gagal menghapus sanksi");
+      fetchSanksi();
     } catch (err: any) {
-      setError(err.message);
+      alert(err.message);
     }
   };
 
   return (
-    <div className="content-page">
-      <h2>Atur Aturan Sanksi Keterlambatan</h2>
-      <p>Buat aturan sanksi berdasarkan jumlah jam keterlambatan santri.</p>
+    <>
+      <PageHeader title="Atur Sanksi" subtitle="Kelola aturan sanksi keterlambatan santri" />
 
-      {/* Form Sanksi */}
-      <form onSubmit={handleSubmit} className="sanksi-form">
-        <h3>{editingId ? "Edit Aturan Sanksi" : "Buat Aturan Baru"}</h3>
-        {error && <p className="error-message">{error}</p>}
-        <div className="form-grid">
-          <div className="form-group">
-            <label htmlFor="min_jam">Minimal Keterlambatan (Jam)</label>
-            <input
-              type="number"
-              id="min_jam"
-              value={minJam}
-              onChange={(e) => setMinJam(escapeInput(e.target.value))}
-              placeholder="Contoh: 6"
-              required
-            />
+      {/* FORM SANKSI (Clean Card Style) */}
+      <div className="form-card-clean">
+        <h3 className="form-section-title">{editingId ? "Edit Aturan Sanksi" : "Buat Aturan Baru"}</h3>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="min_jam">Minimal Terlambat (Jam)</label>
+              <input
+                type="number"
+                id="min_jam"
+                value={minJam}
+                onChange={(e) => setMinJam(escapeInput(e.target.value))}
+                placeholder="Contoh: 6"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="keterangan_sanksi">Bentuk Sanksi</label>
+              <input
+                type="text"
+                id="keterangan_sanksi"
+                value={keterangan}
+                onChange={(e) => setKeterangan(escapeInput(e.target.value))}
+                placeholder="Contoh: Bersih lingkungan..."
+                required
+              />
+            </div>
           </div>
-          <div className="form-group form-span-2">
-            <label htmlFor="keterangan_sanksi">Keterangan Sanksi</label>
-            <input
-              type="text"
-              id="keterangan_sanksi"
-              value={keterangan}
-              onChange={(e) => setKeterangan(escapeInput(e.target.value))}
-              placeholder="Contoh: Membersihkan area kamar mandi"
-              required
-            />
-          </div>
-        </div>
-        <div className="sanksi-form-actions">
-          {editingId && (
-            <button
-              type="button"
-              className="reject-button"
-              onClick={resetForm}
-            >
-              Batal
+          
+          <div className="form-actions">
+            {editingId && (
+              <button type="button" className="reject-button" onClick={resetForm}>Batal</button>
+            )}
+            <button type="submit" className="login-button" disabled={isSaving}>
+              {isSaving ? "Menyimpan..." : editingId ? "Update Aturan" : "Simpan Aturan"}
             </button>
-          )}
-          <button
-            type="submit"
-            className="login-button"
-            disabled={isSaving}
-          >
-            {isSaving
-              ? "Menyimpan..."
-              : editingId
-              ? "Update Sanksi"
-              : "Simpan Sanksi"}
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      </div>
 
-      {/* Daftar Sanksi */}
-      <h3 style={{ marginTop: "2.5rem" }}>Daftar Sanksi Aktif</h3>
-      {isLoading && <p>Memuat daftar sanksi...</p>}
-      <div className="approval-table">
+      {/* DAFTAR SANKSI (Table Card Style) */}
+      <div className="table-card">
         <table className="results-table">
           <thead>
             <tr>
               <th>Min. Keterlambatan</th>
-              <th>Keterangan Sanksi</th>
+              <th>Bentuk Sanksi</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
+            {isLoading && <tr><td colSpan={3} style={{textAlign:'center', padding:'2rem'}}>Memuat...</td></tr>}
             {!isLoading && sanksiList.length === 0 && (
-              <tr>
-                <td
-                  colSpan={3}
-                  style={{ textAlign: "center", color: "#888" }}
-                >
-                  Belum ada aturan sanksi.
-                </td>
-              </tr>
+              <tr><td colSpan={3} style={{textAlign:'center', padding:'2rem'}}>Belum ada aturan.</td></tr>
             )}
             {sanksiList.map((s) => (
               <tr key={s.ID_Sanksi}>
-                <td>{s.Min_Keterlambatan_Jam} jam</td>
-                <td style={{ whiteSpace: "normal" }}>
-                  {s.Keterangan_Sanksi}
-                </td>
-                <td>
+                <td data-label="Min Jam">{s.Min_Keterlambatan_Jam} Jam</td>
+                <td data-label="Sanksi" style={{ whiteSpace: "normal" }}>{s.Keterangan_Sanksi}</td>
+                <td data-label="Aksi">
                   <div className="action-buttons">
-                    <button
-                      className="detail-button"
-                      onClick={() => handleEditClick(s)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="reject-button"
-                      onClick={() => handleDeleteClick(s.ID_Sanksi)}
-                    >
-                      Hapus
-                    </button>
+                    <button className="detail-button" onClick={() => handleEditClick(s)}>Edit</button>
+                    <button className="reject-button" onClick={() => handleDeleteClick(s.ID_Sanksi)}>Hapus</button>
                   </div>
                 </td>
               </tr>
@@ -496,67 +441,38 @@ const AturSanksiView: React.FC = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 };
 
 // =======================================================
-// Komponen Utama Dashboard (Router Internal) (DIPERBARUI)
+// Main Component
 // =======================================================
-const DashboardNdalem: React.FC<DashboardNdalemProps> = ({
-  loggedInUser,
-  handleLogout,
-}) => {
+const DashboardNdalem: React.FC<DashboardNdalemProps> = ({ loggedInUser, handleLogout }) => {
   const [view, setView] = useState<NdalemView>("persetujuan");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
 
-  const renderView = () => {
-    switch (view) {
-      case "persetujuan":
-        return <PersetujuanView />;
-      case "atur_sanksi":
-        return <AturSanksiView />;
-      default:
-        return <PersetujuanView />;
-    }
-  };
-
-  // --- Definisikan Navigasi untuk Sidebar ---
   const navLinks = [
     { key: "persetujuan", label: "Persetujuan Izin" },
     { key: "atur_sanksi", label: "Atur Sanksi" },
   ];
 
   return (
-    // Gunakan layout baru
     <div className="sidebar-layout">
-      {/* Overlay untuk mobile */}
-      {isSidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
-
-      <Header
-        loggedInUser={loggedInUser}
-        handleLogout={handleLogout}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+      <Header loggedInUser={loggedInUser} handleLogout={handleLogout} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       <Sidebar
         isOpen={isSidebarOpen}
         activeView={view}
-        onNavigate={(v) => {
-          setView(v as NdalemView);
-          setIsSidebarOpen(false);
-        }}
+        onNavigate={(v) => { setView(v as NdalemView); setIsSidebarOpen(false); }}
         navLinks={navLinks}
         handleLogout={handleLogout}
       />
-      
       <div className="dashboard-content-main">
-        <main className="dashboard-content">{renderView()}</main>
+        <main className="dashboard-content">
+          {view === "persetujuan" && <PersetujuanView />}
+          {view === "atur_sanksi" && <AturSanksiView />}
+        </main>
       </div>
     </div>
   );

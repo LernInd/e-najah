@@ -3,9 +3,9 @@
 import React, { useState, useEffect, FormEvent } from "react";
 import "./App.css";
 import "./DashboardAdminDataSantri.css";
-import "./DashboardLayout.css"; // <-- CSS BARU
-import { Sidebar } from "./Sidebar"; // <-- KOMPONEN BARU
-import { Header } from "./Header"; // <-- KOMPONEN BARU
+import "./DashboardLayout.css";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
 
 // --- Tipe Data ---
 type UserData = {
@@ -31,7 +31,7 @@ type SantriSearchResult = {
 type SantriDataLengkap = {
   id: number;
   nama_santri: string;
-  foto: string | null; // Foto bisa null
+  foto: string | null;
   jenis_kelamin: "L" | "P";
   status_santri: SantriStatus;
   alamat: string | null;
@@ -44,7 +44,6 @@ type SantriDataLengkap = {
 };
 type View = "dashboard" | "tambah" | "detail";
 
-// Props dari App.tsx
 interface DashboardAdminDataSantriProps {
   loggedInUser: UserData;
   handleLogout: () => void;
@@ -52,13 +51,18 @@ interface DashboardAdminDataSantriProps {
 
 // Helper
 const getToken = (): string | null => localStorage.getItem("token");
+function escapeInput(str: string): string { return str.replace(/[<>&'"`]/g, ""); }
 
-function escapeInput(str: string): string {
-  return str.replace(/[<>&'"`]/g, "");
-}
+// Component Header
+const PageHeader: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
+  <div className="page-header-clean">
+    <h2>{title}</h2>
+    <p>{subtitle}</p>
+  </div>
+);
 
 // =======================================================
-// "Halaman" Dashboard (Statistik + Pencarian)
+// View: Dashboard (Stats + Search)
 // =======================================================
 interface DashboardViewProps {
   onShowDetail: (id: number) => void;
@@ -66,188 +70,108 @@ interface DashboardViewProps {
 const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
   const [stats, setStats] = useState<SantriStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [statsError, setStatsError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState("");
-  const [searchResults, setSearchResults] = useState<
-    SantriSearchResult[] | null
-  >(null);
+  const [searchResults, setSearchResults] = useState<SantriSearchResult[] | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useEffect(() => { fetchStats(); }, []);
 
   const fetchStats = async () => {
     setIsLoadingStats(true);
-    setStatsError("");
     try {
       const token = getToken();
-      const response = await fetch("/api/admin/santri/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("Gagal memuat statistik");
-      const data: SantriStats = await response.json();
-      setStats(data);
-    } catch (err: any) {
-      setStatsError(err.message);
-    } finally {
-      setIsLoadingStats(false);
-    }
+      const response = await fetch("/api/admin/santri/stats", { headers: { Authorization: `Bearer ${token}` } });
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.data);
+      }
+    } catch (err) { console.error(err); } finally { setIsLoadingStats(false); }
   };
 
   const fetchSearchResults = async (query: string, page: number) => {
     setIsSearching(true);
-    setSearchError("");
     try {
       const token = getToken();
-      const response = await fetch(
-        `/api/admin/santri/search?q=${encodeURIComponent(query)}&page=${page}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`/api/admin/santri/search?q=${encodeURIComponent(query)}&page=${page}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal mencari data");
-      setSearchResults(data.results);
-      setTotalPages(data.totalPages);
-      setCurrentPage(data.currentPage);
-    } catch (err: any) {
-      setSearchError(err.message);
-    } finally {
-      setIsSearching(false);
-    }
+      if (response.ok) {
+        setSearchResults(data.data.results);
+        setTotalPages(data.data.pagination.totalPages);
+        setCurrentPage(data.data.pagination.currentPage);
+      }
+    } catch (err) { console.error(err); } finally { setIsSearching(false); }
   };
 
   const handleSearchSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) {
-      setSearchResults(null);
-      setTotalPages(0);
-      return;
-    }
+    if (!searchQuery.trim()) { setSearchResults(null); setTotalPages(0); return; }
     fetchSearchResults(searchQuery, 1);
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages || newPage === currentPage) {
-      return;
-    }
-    fetchSearchResults(searchQuery, newPage);
-  };
-
   return (
-    <div className="login-form">
-      <h2>Ringkasan Data Santri</h2>
-      {statsError && <p className="error-message">{statsError}</p>}
+    <>
+      <PageHeader title="Dashboard Santri" subtitle="Ringkasan statistik dan pencarian data santri" />
+      
       <div className="stats-container">
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.totalSantri}</h3>
-          <p>Santri Aktif</p>
-        </div>
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.putra}</h3> <p>Putra Aktif</p>
-        </div>
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.putri}</h3> <p>Putri Aktif</p>
-        </div>
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.totalPengurus}</h3>
-          <p>Pengurus</p>
-        </div>
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.totalPengabdi}</h3>
-          <p>Pengabdi</p>
-        </div>
-        <div className="stat-card">
-          <h3>{isLoadingStats ? "..." : stats?.totalAlumni}</h3>
-          <p>Alumni</p>
-        </div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.totalSantri || 0}</h3><p>Santri Aktif</p></div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.putra || 0}</h3><p>Putra</p></div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.putri || 0}</h3><p>Putri</p></div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.totalPengurus || 0}</h3><p>Pengurus</p></div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.totalPengabdi || 0}</h3><p>Pengabdi</p></div>
+        <div className="stat-card"><h3>{isLoadingStats ? "..." : stats?.totalAlumni || 0}</h3><p>Alumni</p></div>
       </div>
-      <div className="search-section">
-        <h2 style={{ marginTop: "3rem" }}>Cari Data Santri</h2>
-        <form onSubmit={handleSearchSubmit}>
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Cari berdasarkan nama santri..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(escapeInput(e.target.value))}
-              disabled={isSearching}
-            />
-            <button
-              type="submit"
-              className="login-button"
-              disabled={isSearching}
-            >
-              {isSearching ? "..." : "Cari"}
-            </button>
-          </div>
+
+      <div className="search-wrapper-clean">
+        <form onSubmit={handleSearchSubmit} className="search-bar-clean">
+          <input
+            type="text"
+            placeholder="Cari nama santri..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(escapeInput(e.target.value))}
+            disabled={isSearching}
+          />
+          <button type="submit" disabled={isSearching}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            {isSearching ? "..." : "Cari"}
+          </button>
         </form>
-        {isSearching && (
-          <p style={{ textAlign: "center", marginTop: "2rem" }}>Mencari...</p>
-        )}
-        {searchError && <p className="error-message">{searchError}</p>}
-        {searchResults && (
-          <SearchResultsList
-            results={searchResults}
-            onDetailClick={onShowDetail}
-          />
-        )}
-        {searchResults && totalPages > 1 && (
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
       </div>
-    </div>
+
+      {searchResults && (
+        <>
+          <SearchResultsList results={searchResults} onDetailClick={onShowDetail} />
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button onClick={() => fetchSearchResults(searchQuery, currentPage - 1)} disabled={currentPage <= 1}>&larr; Prev</button>
+              <span>Hal {currentPage} / {totalPages}</span>
+              <button onClick={() => fetchSearchResults(searchQuery, currentPage + 1)} disabled={currentPage >= totalPages}>Next &rarr;</button>
+            </div>
+          )}
+        </>
+      )}
+    </>
   );
 };
 
-// =======================================================
-// Komponen Tabel Hasil Pencarian
-// =======================================================
-interface SearchResultsListProps {
-  results: SantriSearchResult[];
-  onDetailClick: (id: number) => void;
-}
-const SearchResultsList: React.FC<SearchResultsListProps> = ({
-  results,
-  onDetailClick,
-}) => {
-  if (results.length === 0) {
-    return (
-      <p style={{ textAlign: "center", color: "#888", marginTop: "2rem" }}>
-        Tidak ada data santri yang ditemukan.
-      </p>
-    );
-  }
+const SearchResultsList: React.FC<{ results: SantriSearchResult[]; onDetailClick: (id: number) => void }> = ({ results, onDetailClick }) => {
+  if (results.length === 0) return <p style={{textAlign:'center', color:'#888', marginTop:'2rem'}}>Tidak ditemukan data.</p>;
   return (
-    <div className="search-results-container">
+    <div className="table-card">
       <table className="results-table">
         <thead>
-          <tr>
-            <th>Nama Santri</th>
-            <th>L/P</th>
-            <th>Aksi</th>
-          </tr>
+          <tr><th>Nama Santri</th><th>L/P</th><th>Aksi</th></tr>
         </thead>
         <tbody>
           {results.map((santri) => (
             <tr key={santri.id}>
-              <td>{santri.nama_santri}</td>
-              <td>{santri.jenis_kelamin}</td>
-              <td>
-                <button
-                  className="detail-button"
-                  onClick={() => onDetailClick(santri.id)}
-                >
-                  Lihat Detail
-                </button>
+              <td data-label="Nama">{santri.nama_santri}</td>
+              <td data-label="L/P">{santri.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</td>
+              <td data-label="Aksi">
+                <button className="detail-button" onClick={() => onDetailClick(santri.id)}>Detail</button>
               </td>
             </tr>
           ))}
@@ -258,49 +182,17 @@ const SearchResultsList: React.FC<SearchResultsListProps> = ({
 };
 
 // =======================================================
-// Komponen Kontrol Pagination
-// =======================================================
-interface PaginationControlsProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}
-const PaginationControls: React.FC<PaginationControlsProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) => {
-  return (
-    <div className="pagination-controls">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage <= 1}
-      >
-        &larr; Sebelumnya
-      </button>
-      <span>
-        Halaman {currentPage} dari {totalPages}
-      </span>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages}
-      >
-        Selanjutnya &rarr;
-      </button>
-    </div>
-  );
-};
-
-// =======================================================
-// "Halaman" Tambah Santri (Form)
+// View: Tambah Santri (MODIFIED LAYOUT)
 // =======================================================
 const TambahSantriView = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
   // State Form
   const [namaSantri, setNamaSantri] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null); // Preview State
   const [jenisKelamin, setJenisKelamin] = useState<"L" | "P">("L");
   const [statusSantri, setStatusSantri] = useState<SantriStatus>("santri");
   const [alamat, setAlamat] = useState("");
@@ -311,19 +203,28 @@ const TambahSantriView = () => {
   const [namaWali, setNamaWali] = useState("");
   const [kontakWali, setKontakWali] = useState("");
 
+  // Handle Image Change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Validasi Tipe File di Client Side
+      if (file.type !== "image/jpeg" && file.type !== "image/jpg") {
+        alert("Hanya file JPG/JPEG yang diperbolehkan.");
+        return;
+      }
+      
+      setFoto(file);
+      setFotoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-    setSuccess("");
-
+    setIsLoading(true); setError(""); setSuccess("");
     const formData = new FormData();
     formData.append("nama_santri", namaSantri);
-
-    if (foto) {
-      formData.append("foto", foto);
-    }
-
+    if (foto) formData.append("foto", foto);
     formData.append("jenis_kelamin", jenisKelamin);
     formData.append("status_santri", statusSantri);
     formData.append("alamat", alamat);
@@ -333,349 +234,192 @@ const TambahSantriView = () => {
     formData.append("kontak_ayah", kontakAyah);
     formData.append("nama_wali", namaWali);
     formData.append("kontak_wali", kontakWali);
+
     try {
-      const token = getToken();
-      const response = await fetch("/api/admin/santri/create", {
+      const res = await fetch("/api/admin/santri/create", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Gagal membuat santri");
-      }
-      setSuccess("Santri baru berhasil ditambahkan!");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Gagal");
+      setSuccess("Santri berhasil ditambahkan!");
       (e.target as HTMLFormElement).reset();
-      // Reset semua state
-      setFoto(null);
-      setNamaSantri("");
-      setJenisKelamin("L");
-      setStatusSantri("santri");
-      setAlamat("");
-      setNamaIbu("");
-      setKontakIbu("");
-      setNamaAyah("");
-      setKontakAyah("");
-      setNamaWali("");
-      setKontakWali("");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      setFoto(null); setFotoPreview(null); setNamaSantri(""); setAlamat(""); 
+    } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
   };
 
   return (
-    <div className="login-form" style={{ maxWidth: "600px" }}>
-      <h2>Tambah Data Santri Baru</h2>
-      {error && <p className="error-message">{error}</p>}
-      {success && <p className="success-message">{success}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <div className="form-group form-span-2">
-            <label htmlFor="nama_santri">Nama Santri *</label>
-            <input
-              type="text"
-              id="nama_santri"
-              required
-              value={namaSantri}
-              onChange={(e) => setNamaSantri(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="jenis_kelamin">Jenis Kelamin *</label>
-            <select
-              id="jenis_kelamin"
-              required
-              value={jenisKelamin}
-              onChange={(e) => setJenisKelamin(e.target.value as "L" | "P")}
-            >
-              <option value="L">Laki-laki (L)</option>
-              <option value="P">Perempuan (P)</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="status_santri">Status Santri *</label>
-            <select
-              id="status_santri"
-              required
-              value={statusSantri}
-              onChange={(e) => setStatusSantri(e.target.value as SantriStatus)}
-            >
-              <option value="santri">Santri Aktif</option>
-              <option value="alumni">Alumni</option>
-              <option value="pengurus">Pengurus</option>
-              <option value="pengabdi">Pengabdi</option>
-            </select>
-          </div>
-
-          <div className="form-group form-span-2">
-            <label htmlFor="foto">Foto Santri (Opsional)</label>
-            <input
-              type="file"
-              id="foto"
-              accept="image/png, image/jpeg"
-              onChange={(e) =>
-                setFoto(e.target.files ? e.target.files[0] : null)
-              }
-            />
-          </div>
-
-          <div className="form-group form-span-2">
-            <label htmlFor="alamat">Alamat</label>
-            <textarea
-              id="alamat"
-              value={alamat}
-              onChange={(e) => setAlamat(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="nama_ayah">Nama Ayah</label>
-            <input
-              type="text"
-              id="nama_ayah"
-              value={namaAyah}
-              onChange={(e) => setNamaAyah(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="kontak_ayah">Kontak Ayah</label>
-            <input
-              type="text"
-              id="kontak_ayah"
-              value={kontakAyah}
-              onChange={(e) => setKontakAyah(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="nama_ibu">Nama Ibu</label>
-            <input
-              type="text"
-              id="nama_ibu"
-              value={namaIbu}
-              onChange={(e) => setNamaIbu(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="kontak_ibu">Kontak Ibu</label>
-            <input
-              type="text"
-              id="kontak_ibu"
-              value={kontakIbu}
-              onChange={(e) => setKontakIbu(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="nama_wali">Nama Wali (jika ada)</label>
-            <input
-              type="text"
-              id="nama_wali"
-              value={namaWali}
-              onChange={(e) => setNamaWali(escapeInput(e.target.value))}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="kontak_wali">Kontak Wali</label>
-            <input
-              type="text"
-              id="kontak_wali"
-              value={kontakWali}
-              onChange={(e) => setKontakWali(escapeInput(e.target.value))}
-            />
-          </div>
+    <>
+      <PageHeader title="Tambah Santri" subtitle="Input data santri baru ke sistem" />
+      <div className="form-card-clean">
+        <div className="form-header-split">
+          <div className="form-title"><h3>Formulir Data Diri</h3></div>
         </div>
-        <button
-          type="submit"
-          className="login-button"
-          disabled={isLoading}
-          style={{ marginTop: "1rem" }}
-        >
-          {isLoading ? "Menyimpan..." : "Simpan Data Santri"}
-        </button>
-      </form>
-    </div>
+        
+        {success && <div className="success-message">{success}</div>}
+        {error && <p className="error-message">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="form-layout-with-photo">
+          
+          {/* KOLOM KIRI: INPUT DATA */}
+          <div className="form-inputs-section">
+            <div className="form-grid">
+              <div className="form-group form-span-2">
+                <label>Nama Santri *</label>
+                <input type="text" required value={namaSantri} onChange={(e) => setNamaSantri(escapeInput(e.target.value))} placeholder="Nama Lengkap" />
+              </div>
+              <div className="form-group">
+                <label>Jenis Kelamin *</label>
+                <select required value={jenisKelamin} onChange={(e) => setJenisKelamin(e.target.value as "L"|"P")}>
+                  <option value="L">Laki-laki (L)</option>
+                  <option value="P">Perempuan (P)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Status Santri *</label>
+                <select required value={statusSantri} onChange={(e) => setStatusSantri(e.target.value as SantriStatus)}>
+                  <option value="santri">Santri Aktif</option>
+                  <option value="alumni">Alumni</option>
+                  <option value="pengurus">Pengurus</option>
+                  <option value="pengabdi">Pengabdi</option>
+                </select>
+              </div>
+              <div className="form-group form-span-2">
+                <label>Alamat</label>
+                <textarea value={alamat} onChange={(e) => setAlamat(escapeInput(e.target.value))} rows={3} />
+              </div>
+              {/* Data Ortu */}
+              <div className="form-group"><label>Nama Ayah</label><input type="text" value={namaAyah} onChange={e => setNamaAyah(escapeInput(e.target.value))} /></div>
+              <div className="form-group"><label>Kontak Ayah</label><input type="text" value={kontakAyah} onChange={e => setKontakAyah(escapeInput(e.target.value))} /></div>
+              <div className="form-group"><label>Nama Ibu</label><input type="text" value={namaIbu} onChange={e => setNamaIbu(escapeInput(e.target.value))} /></div>
+              <div className="form-group"><label>Kontak Ibu</label><input type="text" value={kontakIbu} onChange={e => setKontakIbu(escapeInput(e.target.value))} /></div>
+              <div className="form-group"><label>Nama Wali (Opsional)</label><input type="text" value={namaWali} onChange={e => setNamaWali(escapeInput(e.target.value))} /></div>
+              <div className="form-group"><label>Kontak Wali</label><input type="text" value={kontakWali} onChange={e => setKontakWali(escapeInput(e.target.value))} /></div>
+            </div>
+            
+            <button type="submit" className="login-button" disabled={isLoading} style={{marginTop:'2rem', width:'100%'}}>
+              {isLoading ? "Menyimpan..." : "Simpan Data Santri"}
+            </button>
+          </div>
+
+          {/* KOLOM KANAN: FOTO */}
+          <div className="form-photo-section">
+            <label>Foto Santri</label>
+            <label htmlFor="foto-upload" className="photo-uploader">
+              {fotoPreview ? (
+                <img src={fotoPreview} alt="Preview" className="photo-preview-img" />
+              ) : (
+                <div className="photo-placeholder-text">
+                  <p>Klik untuk upload</p>
+                  <small style={{fontSize:'0.7rem', display:'block', marginTop:'0.5rem'}}>(Wajib JPG/JPEG, Rasio 3:4)</small>
+                </div>
+              )}
+            </label>
+            <input 
+              type="file" 
+              id="foto-upload" 
+              accept="image/jpeg, image/jpg" 
+              className="photo-input-hidden" 
+              onChange={handleFileChange} 
+            />
+            <label htmlFor="foto-upload" className="photo-upload-btn">
+              {foto ? "Ganti Foto" : "Pilih Foto"}
+            </label>
+          </div>
+
+        </form>
+      </div>
+    </>
   );
 };
 
 // =======================================================
-// "Halaman" Detail Santri
+// View: Detail Santri
 // =======================================================
-interface DetailSantriViewProps {
-  santriId: number;
-  onBack: () => void;
-}
-const DetailSantriView: React.FC<DetailSantriViewProps> = ({
-  santriId,
-  onBack,
-}) => {
+const DetailSantriView: React.FC<{ santriId: number; onBack: () => void }> = ({ santriId, onBack }) => {
   const [santri, setSantri] = useState<SantriDataLengkap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDetail = async () => {
-      setIsLoading(true);
-      setError("");
       try {
-        const token = getToken();
-        const response = await fetch(`/api/admin/santri/${santriId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || "Gagal mengambil detail");
-        }
-        const data: SantriDataLengkap = await response.json();
-        setSantri(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
+        const res = await fetch(`/api/admin/santri/${santriId}`, { headers: { Authorization: `Bearer ${getToken()}` } });
+        const data = await res.json();
+        if (res.ok) setSantri(data.data);
+      } catch (e) { console.error(e); } finally { setIsLoading(false); }
     };
     fetchDetail();
   }, [santriId]);
 
+  if (isLoading) return <p style={{textAlign:'center'}}>Memuat...</p>;
+  if (!santri) return <p style={{textAlign:'center'}}>Data tidak ditemukan.</p>;
+
   return (
-    <div className="login-form" style={{ maxWidth: "700px" }}>
-      <button onClick={onBack} className="back-button">
-        &larr; Kembali ke Hasil Pencarian
-      </button>
-      <h2>Detail Data Santri</h2>
-
-      {isLoading && <p>Memuat data...</p>}
-      {error && <p className="error-message">{error}</p>}
-
-      {santri && (
+    <>
+      <button onClick={onBack} className="back-link">&larr; Kembali</button>
+      <div className="form-card-clean">
         <div className="detail-view-container">
           <div className="detail-photo">
             {santri.foto ? (
               <img src={`/api/images/${santri.foto}`} alt={santri.nama_santri} />
             ) : (
-              <div className="photo-placeholder">
-                <span>Foto Tidak Tersedia</span>
-              </div>
+              <div className="photo-placeholder">Foto Kosong</div>
             )}
           </div>
-
           <div className="detail-info-grid">
             <div className="detail-item detail-span-2">
-              <label>Nama Lengkap</label> <p>{santri.nama_santri}</p>
+              <label>Nama Lengkap</label><p>{santri.nama_santri}</p>
             </div>
             <div className="detail-item">
-              <label>Jenis Kelamin</label>
-              <p>{santri.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
+              <label>Jenis Kelamin</label><p>{santri.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
             </div>
             <div className="detail-item">
-              <label>Status Santri</label>
-              <p className={`status-badge ${santri.status_santri}`}>
-                {santri.status_santri}
-              </p>
+              <label>Status</label><p className={`status-badge ${santri.status_santri}`}>{santri.status_santri}</p>
             </div>
             <div className="detail-item detail-span-2">
-              <label>Alamat</label> <p>{santri.alamat || "-"}</p>
+              <label>Alamat</label><p>{santri.alamat || "-"}</p>
             </div>
-            <div className="detail-item">
-              <label>Nama Ayah</label> <p>{santri.nama_ayah || "-"}</p>
-            </div>
-            <div className="detail-item">
-              <label>Kontak Ayah</label> <p>{santri.kontak_ayah || "-"}</p>
-            </div>
-            <div className="detail-item">
-              <label>Nama Ibu</label> <p>{santri.nama_ibu || "-"}</p>
-            </div>
-            <div className="detail-item">
-              <label>Kontak Ibu</label> <p>{santri.kontak_ibu || "-"}</p>
-            </div>
-            <div className="detail-item">
-              <label>Nama Wali</label> <p>{santri.nama_wali || "-"}</p>
-            </div>
-            <div className="detail-item">
-              <label>Kontak Wali</label> <p>{santri.kontak_wali || "-"}</p>
-            </div>
+            <div className="detail-item"><label>Ayah</label><p>{santri.nama_ayah || "-"}</p></div>
+            <div className="detail-item"><label>Kontak Ayah</label><p>{santri.kontak_ayah || "-"}</p></div>
+            <div className="detail-item"><label>Ibu</label><p>{santri.nama_ibu || "-"}</p></div>
+            <div className="detail-item"><label>Kontak Ibu</label><p>{santri.kontak_ibu || "-"}</p></div>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
 // =======================================================
-// Komponen Utama Dashboard (Router Internal) (DIPERBARUI)
+// Main Component
 // =======================================================
-const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({
-  loggedInUser,
-  handleLogout,
-}) => {
+const DashboardAdminDataSantri: React.FC<DashboardAdminDataSantriProps> = ({ loggedInUser, handleLogout }) => {
   const [view, setView] = useState<View>("dashboard");
-  const [selectedSantriId, setSelectedSantriId] = useState<number | null>(
-    null
-  );
+  const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleShowDetail = (id: number) => {
-    setSelectedSantriId(id);
-    setView("detail");
-  };
-
-  const handleBackToDashboard = () => {
-    setSelectedSantriId(null);
-    setView("dashboard");
-  };
-
-  // --- Definisikan Navigasi untuk Sidebar ---
   const navLinks = [
     { key: "dashboard", label: "Dashboard" },
     { key: "tambah", label: "Tambah Santri" },
   ];
 
-  // Tentukan view yang aktif untuk highlight link
-  const getActiveViewForNav = () => {
-    if (view === "detail") return "dashboard"; // Anggap 'detail' bagian dari 'dashboard'
-    return view;
-  };
-
   return (
-    // Gunakan layout baru
     <div className="sidebar-layout">
-      {/* Overlay untuk mobile */}
-      {isSidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
-      )}
-
-      <Header
-        loggedInUser={loggedInUser}
-        handleLogout={handleLogout}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+      <Header loggedInUser={loggedInUser} handleLogout={handleLogout} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
       <Sidebar
         isOpen={isSidebarOpen}
-        activeView={getActiveViewForNav()}
-        onNavigate={(v) => {
-          setView(v as View);
-          setSelectedSantriId(null);
-          setIsSidebarOpen(false); // Tutup sidebar di mobile
-        }}
+        activeView={view === "detail" ? "dashboard" : view}
+        onNavigate={(v) => { setView(v as View); setSelectedSantriId(null); setIsSidebarOpen(false); }}
         navLinks={navLinks}
         handleLogout={handleLogout}
       />
-      
       <div className="dashboard-content-main">
         <main className="dashboard-content">
-          {view === "dashboard" && (
-            <DashboardView onShowDetail={handleShowDetail} />
-          )}
+          {view === "dashboard" && <DashboardView onShowDetail={(id) => { setSelectedSantriId(id); setView("detail"); }} />}
           {view === "tambah" && <TambahSantriView />}
-          {view === "detail" && selectedSantriId && (
-            <DetailSantriView
-              santriId={selectedSantriId}
-              onBack={handleBackToDashboard}
-            />
-          )}
+          {view === "detail" && selectedSantriId && <DetailSantriView santriId={selectedSantriId} onBack={() => setView("dashboard")} />}
         </main>
       </div>
     </div>

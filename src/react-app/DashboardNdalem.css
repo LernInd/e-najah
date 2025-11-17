@@ -1,304 +1,296 @@
 /* src/react-app/DashboardNdalem.css */
 
-/* === Layout Utama Dashboard === */
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  transition: color 0.2s;
-}
-.navbar-brand:hover {
-  color: var(--color-primary);
-}
-.navbar-links {
-  display: flex;
-  gap: 1rem;
-}
-.navbar-links button {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-.navbar-links button:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-bg);
-}
-.navbar-links button.active {
-  color: var(--color-primary);
-  background-color: rgba(16, 185, 129, 0.1);
-  font-weight: 600;
-}
-.navbar-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.navbar-user span {
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
-}
-.navbar-user .logout-button {
-  margin-top: 0;
-  width: auto;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+/* === PAGE HEADER === */
+.page-header-clean {
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
-/* === Area Konten Dashboard === */
-.dashboard-content {
-  width: 100%;
-  flex-grow: 1;
-  padding: 2rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  background-color: var(--color-bg);
+.page-header-clean h2 {
+  font-size: 2rem;
+  color: var(--text-900);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
-/* === Style Konten === */
-.content-page {
-  width: 100%;
-  max-width: 1000px;
-  background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-.content-page h2 {
-  font-size: 1.8rem;
-  color: var(--color-text-primary);
-  margin-top: 0;
-}
-.content-page p {
+.page-header-clean p {
+  color: var(--text-600);
   font-size: 1.1rem;
-  color: var(--color-text-secondary);
 }
 
-/* === Style Tabel Pengajuan === */
-.approval-table {
+/* === TABLE CARD SYSTEM === */
+.table-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--surface-200);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
   width: 100%;
-  margin-top: 1rem;
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: var(--color-bg-card);
+  margin-bottom: 2rem;
 }
+
 .results-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
+
 .results-table th,
 .results-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1rem;
+  border-bottom: 1px solid var(--surface-200);
   vertical-align: middle;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
+
 .results-table th {
-  color: var(--color-text-secondary);
+  color: var(--text-600);
   font-weight: 600;
-  background-color: #F9FAFB;
+  background-color: var(--surface-50);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
 }
+
 .results-table td {
-  color: var(--color-text-primary);
+  color: var(--text-900);
 }
+
 .results-table tr:last-child td {
   border-bottom: none;
 }
+
 .results-table tbody tr:hover {
-  background-color: #F3F4F6;
+  background-color: var(--surface-50);
 }
-.results-table .action-buttons {
+
+/* Tombol Aksi Khusus Ndalem */
+.action-buttons {
   display: flex;
   gap: 0.5rem;
 }
+
 .approve-button, .reject-button, .detail-button {
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 0.3rem 0.8rem;
-  border: 1px solid;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid transparent;
   cursor: pointer;
-}
-.approve-button {
-  color: var(--color-success);
-  background-color: rgba(34, 197, 94, 0.1);
-  border-color: var(--color-success);
-}
-.approve-button:hover {
-  background-color: var(--color-success);
-  color: var(--color-text-on-primary);
-}
-.reject-button {
-  color: var(--color-error);
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: var(--color-error);
-}
-.reject-button:hover {
-  background-color: var(--color-error);
-  color: var(--color-text-on-primary);
-}
-.detail-button {
-  color: #3B82F6; /* Biru */
-  background-color: rgba(59, 130, 246, 0.1);
-  border-color: #3B82F6;
-}
-.detail-button:hover {
-  background-color: #3B82F6;
-  color: var(--color-text-on-primary);
+  transition: all 0.2s;
 }
 
-/* === Style Modal === */
+.approve-button {
+  background-color: var(--primary-50);
+  color: var(--primary-700);
+  border-color: var(--primary-200);
+}
+.approve-button:hover {
+  background-color: var(--primary-600);
+  color: white;
+  border-color: var(--primary-600);
+}
+
+.reject-button {
+  background-color: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+.reject-button:hover {
+  background-color: #DC2626;
+  color: white;
+  border-color: #DC2626;
+}
+
+.detail-button {
+  background-color: white;
+  border-color: var(--surface-200);
+  color: var(--text-600);
+}
+.detail-button:hover {
+  border-color: var(--text-400);
+  color: var(--text-900);
+}
+
+/* === FORM CARD SYSTEM (Sanksi) === */
+.form-card-clean {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--surface-200);
+  padding: 2.5rem;
+  max-width: 800px; /* Sedikit lebih lebar untuk form sanksi */
+  margin: 0 auto 3rem auto; /* Margin bawah agar tidak nempel tabel */
+  animation: slideUp 0.3s ease-out;
+}
+
+.form-section-title {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  color: var(--text-900);
+  font-weight: 700;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--surface-200);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-100);
+}
+
+/* === MODAL === */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  box-sizing: border-box;
 }
+
 .modal-content {
-  background-color: var(--color-bg-card);
-  border-radius: 8px;
+  background-color: white;
+  border-radius: var(--radius-xl);
   padding: 2rem;
   width: 100%;
   max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .modal-close-button {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.5rem;
+  right: 1.5rem;
   background: none;
   border: none;
-  font-size: 1.8rem;
-  color: var(--color-text-secondary);
+  font-size: 1.5rem;
+  color: var(--text-400);
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
-.modal-close-button:hover {
-  color: var(--color-text-primary);
-  border: none;
-}
+
 .modal-content h2 {
   margin-top: 0;
-}
-.modal-form {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* === Style Info Detail di Modal === */
-.detail-info-grid.simple-grid {
+.detail-info-grid {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
-.detail-info-grid .detail-item {
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
-}
-.detail-info-grid .detail-item label {
+
+.detail-item label {
   display: block;
   font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  font-weight: 600;
+  color: var(--text-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
 }
-.detail-info-grid .detail-item p {
+
+.detail-item p {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--color-text-primary);
-}
-.detail-info-grid .detail-item.detail-span-2 {
-  grid-column: span 1;
+  color: var(--text-900);
+  font-weight: 500;
 }
 
-/* === Style Form Sanksi (BARU) === */
-.sanksi-form {
-  padding: 1.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: var(--color-bg);
-  margin-bottom: 2rem;
-}
-.sanksi-form h3 {
-  margin-top: 0;
-}
-.sanksi-form .form-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
-  align-items: flex-end;
-}
-.sanksi-form .form-span-2 {
-  grid-column: span 2;
-}
-.sanksi-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-.sanksi-form-actions .login-button,
-.sanksi-form-actions .reject-button {
-  width: auto;
-  margin-top: 0;
-}
-
-
-/* === Responsif === */
+/* === RESPONSIVE TABLE (MOBILE CARD VIEW) === */
 @media (max-width: 768px) {
-  .dashboard-navbar {
-    padding: 0 1rem;
+  .table-card {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
   }
-  .navbar-brand {
-    font-size: 1.2rem;
-  }
-  .navbar-links {
-    display: none;
-  }
-  .navbar-user span {
-    display: none;
-  }
-  .dashboard-content {
-    padding: 1.5rem 1rem;
-  }
-  .content-page {
-    padding: 1.5rem;
-  }
-  .results-table th,
+
+  .results-table, 
+  .results-table tbody, 
+  .results-table tr, 
   .results-table td {
-    padding: 0.5rem;
-    font-size: 0.8rem;
+    display: block;
+    width: 100%;
   }
-  .results-table .action-buttons {
-    flex-direction: column;
+
+  .results-table thead {
+    display: none;
   }
-  .sanksi-form .form-grid {
-    grid-template-columns: 1fr; /* Tumpuk form sanksi di HP */
+
+  .results-table tr {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--surface-200);
+    margin-bottom: 1rem;
+    padding: 1.25rem;
+    position: relative;
   }
-  .sanksi-form .form-span-2 {
-    grid-column: span 1;
+
+  .results-table td {
+    text-align: right;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--surface-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .results-table td:last-child {
+    border-bottom: none;
+    margin-top: 1rem;
+    justify-content: flex-end; /* Tombol aksi di kanan bawah */
+  }
+
+  .results-table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: 600;
+    color: var(--text-600);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Form Responsive */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .form-actions button {
+    width: 100%;
   }
 }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

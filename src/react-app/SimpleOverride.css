@@ -1,54 +1,178 @@
-/* SimpleOverride.css – Kompromi legacy + minimalis modern */
+/* src/react-app/SimpleOverride.css */
 
-/* Dasar background, tetap putih/bersih, bantu mencegah anomali di root atau di luar panel utama */
-body, #root {
-  background: #FCFCFC;
-}
-
-/* Card dan panel universal: Pakai border-radius modern, tapi jangan override border/shadow panel/tabel/tombol dari legacy CSS */
-.placeholder-page, .dashboard-content .login-form, .content-page {
-  border-radius: 12px;
-  background: #FFF;
+/* === UTILS: Card & Containers === */
+.login-container,
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Heading universal, tebal dan kontras (tanpa !important) */
-h1, h2, h3, h4, h5 {
-  font-family: 'Inter', Arial, sans-serif;
-  font-weight: 700;
-  color: #23252b;
-}
-h2 {
-  font-size: 1.5rem;
-}
-
-/* Badge minimal hanya untuk badge tanpa style lama saja */
-.status-badge, .status-badge-small {
-  font-family: inherit;
-}
-
-/* Input: buat lebih flat, tapi biarkan border dan spacing dari CSS dashboard berlaku */
-input, select, textarea {
-  border-radius: 6px;
-  font-family: inherit;
+/* Card Universal */
+.form-panel, 
+.placeholder-page, 
+.content-page, 
+.dashboard-content .login-form {
+  background: var(--surface-0);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--surface-200);
+  padding: 2rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Table/Modal: gunakan setting asli kecuali background/rounded saja */
-.results-table, .modal-content {
-  background: #FFF;
-  border-radius: 10px;
+/* === INPUTS & FORMS === */
+.form-group {
+  margin-bottom: 1.25rem;
 }
 
-/* Profile info card agar tetap soft */
-.profile-data {
-  background: #F8FAFC; 
-  color: #328B50;
-  border-radius: 8px;
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-600);
+  margin-bottom: 0.5rem;
 }
 
-/* Responsive fix: tidak override padding, font, dan grid milik CSS dashboard lama! */
-@media (max-width: 768px) {
-  .placeholder-page, .dashboard-content .login-form, .content-page {
-    border-radius: 7px;
-    background: #FFF;
-  }
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--surface-200);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-0);
+  color: var(--text-900);
+  font-size: 0.95rem;
+  transition: all 0.2s;
 }
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+/* === BUTTONS === */
+.login-button, 
+button[type="submit"] {
+  background-color: var(--primary-600);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: var(--primary-700);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.login-button:disabled {
+  background-color: var(--text-400);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* === TABLES === */
+.search-results-container {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.results-table th {
+  background-color: var(--surface-50);
+  color: var(--text-600);
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem;
+  border-bottom: 1px solid var(--surface-200);
+}
+
+.results-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--surface-200);
+  color: var(--text-900);
+}
+
+.results-table tbody tr:hover {
+  background-color: var(--primary-50);
+}
+
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* === BADGES (Status) === */
+.status-badge,
+.status-badge-small {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Warna Status */
+.status-badge.santri, .status-badge-small.santri { background: var(--primary-100); color: var(--primary-700); }
+.status-badge.alumni, .status-badge-small.alumni { background: var(--surface-200); color: var(--text-600); }
+.status-badge.pengurus, .status-badge-small.pengurus { background: #dbeafe; color: #1e40af; } /* Biru */
+.status-badge.pengabdi, .status-badge-small.pengabdi { background: #ffedd5; color: #9a3412; } /* Oranye */
+
+.status-badge.menunggu, .status-badge-small.menunggu { background: #ffedd5; color: #9a3412; }
+.status-badge.disetujui, .status-badge-small.disetujui { background: var(--primary-100); color: var(--primary-700); }
+.status-badge.ditolak, .status-badge-small.ditolak { background: #fee2e2; color: #991b1b; }
+
+/* === ACTION BUTTONS (In Tables) === */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detail-button, .approve-button, .reject-button, .print-button, .mark-returned-button {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.detail-button { background: var(--surface-100); color: var(--text-600); border-color: var(--surface-200); }
+.detail-button:hover { background: var(--surface-200); color: var(--text-900); }
+
+.approve-button { background: var(--primary-100); color: var(--primary-700); }
+.approve-button:hover { background: var(--primary-500); color: white; }
+
+.reject-button { background: #fee2e2; color: #991b1b; }
+.reject-button:hover { background: #ef4444; color: white; }
+
+.print-button { background: var(--surface-0); border-color: var(--surface-200); color: var(--text-600); }
+.print-button:hover { border-color: var(--primary-500); color: var(--primary-600); }

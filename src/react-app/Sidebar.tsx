@@ -1,8 +1,7 @@
 // src/react-app/Sidebar.tsx
 import React from "react";
-import "./DashboardLayout.css"; // Impor CSS layout
+import "./DashboardLayout.css"; 
 
-// Tipe data yang dibutuhkan
 type NavLink = {
   key: string;
   label: string;
@@ -13,7 +12,7 @@ interface SidebarProps {
   activeView: string;
   onNavigate: (view: string) => void;
   navLinks: NavLink[]; 
-  handleLogout: () => void; // <-- Prop untuk logout
+  handleLogout: () => void; 
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -21,14 +20,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   onNavigate,
   navLinks,
-  handleLogout, // <-- Ambil prop
+  // handleLogout, // Prop ini tidak lagi dipakai di visual sidebar, tapi biarkan di interface agar tidak error di parent
 }) => {
 
   return (
     <>
-      {/* Sidebar Utama */}
       <nav className={`sidebar ${isOpen ? "open" : ""}`}>
         
+        {/* Logo / Judul Sidebar */}
+        <div className="sidebar-header-title">
+          E-NAJAH
+        </div>
+
         <div className="sidebar-nav">
           {navLinks.map((link) => (
             <button
@@ -41,12 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </div>
 
-        {/* Tombol Logout di bawah sidebar */}
-        <div className="sidebar-user-info">
-           <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
-        </div>
+        {/* BAGIAN TOMBOL LOGOUT DIHAPUS DI SINI */}
+        
       </nav>
     </>
   );

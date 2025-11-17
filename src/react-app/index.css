@@ -1,83 +1,71 @@
 /* src/react-app/index.css */
 
-html {
-  font-size: 16px; /* Menjadi standar emas untuk aksesibilitas */
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* === PALET WARNA MODERN (Emerald Theme) === */
+  --primary-50: #ecfdf5;
+  --primary-100: #d1fae5;
+  --primary-500: #10b981;
+  --primary-600: #059669;
+  --primary-700: #047857;
 
-  /* === PALET WARNA (LIGHT MODE) === */
-  --color-primary: #10B981; /* Emerald 500 */
-  --color-primary-hover: #059669; /* Emerald 600 */
-  --color-bg: #F9FAFB; /* Gray 50 */
-  --color-bg-card: #FFFFFF; /* Putih */
-  --color-border: #E5E7EB; /* Gray 200 */
-  --color-text-primary: #111827; /* Gray 900 */
-  --color-text-secondary: #6B7280; /* Gray 500 */
-  --color-text-on-primary: #FFFFFF; /* Teks putih di atas tombol hijau */
-  --color-error: #EF4444; /* Red 500 */
-  --color-success: #22C55E; /* Green 500 */
-  /* ==================================== */
+  --surface-0: #ffffff;
+  --surface-50: #f8fafc;
+  --surface-100: #f1f5f9;
+  --surface-200: #e2e8f0;
+  
+  --text-900: #0f172a; /* Judul */
+  --text-600: #475569; /* Paragraf/Label */
+  --text-400: #94a3b8; /* Placeholder */
 
-  color-scheme: light;
-  color: var(--color-text-primary);
-  background-color: var(--color-bg);
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
+  
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-xl: 1rem;     /* 16px */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-a {
-  font-weight: 500;
-  color: var(--color-primary);
-  text-decoration: inherit;
-  transition: color 0.25s;
-}
-a:hover {
-  color: var(--color-primary-hover);
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--surface-50);
+  color: var(--text-900);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
-h1 {
-  font-size: 3.2rem; /* Diubah ke rem */
-  line-height: 1.1;
+/* Reset sederhana untuk box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  color: var(--text-900);
+  font-weight: 600;
+}
+
+a {
+  color: var(--primary-600);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--primary-700);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  padding: 0.6em 1.2em;
-  font-size: 1rem; /* Diubah ke rem */
-  font-weight: 500;
   font-family: inherit;
-  background-color: var(--color-bg-card);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: border-color 0.25s, background-color 0.25s;
-}
-button:hover {
-  border-color: var(--color-primary);
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-/* === Font Scaling untuk Mobile === */
-@media (max-width: 768px) {
-  html {
-    font-size: 14px; /* Sedikit perkecil font dasar di HP */
-  }
 }
