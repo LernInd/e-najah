@@ -93,8 +93,7 @@ const loginAttempts = new Map<string, RateLimitEntry>();
  * Validasi rate limit untuk login
  */
 function checkRateLimit(ip: string): { allowed: boolean; message?: string } {
-  // PERBAIKAN: Memory Guard Sederhana
-  // Karena setInterval tidak boleh di global scope, kita bersihkan manual jika terlalu penuh
+  // Memory Guard Sederhana
   if (loginAttempts.size > 5000) {
     loginAttempts.clear();
   }
@@ -481,7 +480,8 @@ adminApi.post("/santri/create", async (c) => {
     if (foto && foto.size > 0) {
       // Sanitasi nama file
       const fileName = sanitizeInput(foto.name.replace(/[^a-zA-Z0-9.-]/g, ''));
-      fotoKey = `santri/${crypto.randomUUID()}-${fileName}`;
+      // PERBAIKAN: Simpan langsung tanpa folder 'santri/' untuk fleksibilitas
+      fotoKey = `${crypto.randomUUID()}-${fileName}`;
       
       await c.env.MY_BUCKET.put(fotoKey, foto.stream(), {
         httpMetadata: { contentType: foto.type || "application/octet-stream" }
