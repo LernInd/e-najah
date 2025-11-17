@@ -1,6 +1,6 @@
 // src/react-app/DashboardAdminDataSantri.tsx
 
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect, FormEvent, useRef } from "react";
 import "./App.css";
 import "./DashboardAdminDataSantri.css";
 import "./DashboardLayout.css";
@@ -182,7 +182,7 @@ const SearchResultsList: React.FC<{ results: SantriSearchResult[]; onDetailClick
 };
 
 // =======================================================
-// View: Tambah Santri (MODIFIED LAYOUT)
+// View: Tambah Santri (FIXED PREVIEW)
 // =======================================================
 const TambahSantriView = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -192,7 +192,7 @@ const TambahSantriView = () => {
   // State Form
   const [namaSantri, setNamaSantri] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
-  const [fotoPreview, setFotoPreview] = useState<string | null>(null); // Preview State
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [jenisKelamin, setJenisKelamin] = useState<"L" | "P">("L");
   const [statusSantri, setStatusSantri] = useState<SantriStatus>("santri");
   const [alamat, setAlamat] = useState("");
@@ -203,14 +203,31 @@ const TambahSantriView = () => {
   const [namaWali, setNamaWali] = useState("");
   const [kontakWali, setKontakWali] = useState("");
 
+  // Ref untuk input file agar bisa di-reset
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup memory preview saat komponen unmount atau foto berubah
+  useEffect(() => {
+    return () => {
+      if (fotoPreview) {
+        URL.revokeObjectURL(fotoPreview);
+      }
+    };
+  }, [fotoPreview]);
+
   // Handle Image Change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    
+    if (file) {
+      // Validasi Tipe File (JPG/JPEG Only)
+      // Gunakan regex untuk cek ekstensi juga sebagai cadangan
+      const isJpg = file.type === "image/jpeg" || file.type === "image/jpg" || file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg');
       
-      // Validasi Tipe File di Client Side
-      if (file.type !== "image/jpeg" && file.type !== "image/jpg") {
+      if (!isJpg) {
         alert("Hanya file JPG/JPEG yang diperbolehkan.");
+        // Reset input file
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
       
@@ -222,6 +239,7 @@ const TambahSantriView = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true); setError(""); setSuccess("");
+    
     const formData = new FormData();
     formData.append("nama_santri", namaSantri);
     if (foto) formData.append("foto", foto);
@@ -244,9 +262,20 @@ const TambahSantriView = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Gagal");
       setSuccess("Santri berhasil ditambahkan!");
-      (e.target as HTMLFormElement).reset();
-      setFoto(null); setFotoPreview(null); setNamaSantri(""); setAlamat(""); 
-    } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
+      
+      // Reset Form Total
+      setNamaSantri(""); setFoto(null); setFotoPreview(null); 
+      setAlamat(""); setNamaIbu(""); setKontakIbu(""); 
+      setNamaAyah(""); setKontakAyah(""); setNamaWali(""); setKontakWali("");
+      
+      // Reset Input File Fisik
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
+    } catch (err: any) { 
+      setError(err.message); 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   return (
@@ -312,16 +341,17 @@ const TambahSantriView = () => {
               ) : (
                 <div className="photo-placeholder-text">
                   <p>Klik untuk upload</p>
-                  <small style={{fontSize:'0.7rem', display:'block', marginTop:'0.5rem'}}>(Wajib JPG/JPEG, Rasio 3:4)</small>
+                  <small style={{fontSize:'0.7rem', display:'block', marginTop:'0.5rem', color:'#999'}}>(Wajib JPG/JPEG, Rasio 3:4)</small>
                 </div>
               )}
             </label>
             <input 
               type="file" 
               id="foto-upload" 
-              accept="image/jpeg, image/jpg" 
+              accept=".jpg, .jpeg, image/jpeg" 
               className="photo-input-hidden" 
-              onChange={handleFileChange} 
+              onChange={handleFileChange}
+              ref={fileInputRef} 
             />
             <label htmlFor="foto-upload" className="photo-upload-btn">
               {foto ? "Ganti Foto" : "Pilih Foto"}
