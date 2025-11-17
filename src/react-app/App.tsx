@@ -1,6 +1,6 @@
 // src/react-app/App.tsx
 
-import React, { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import "./App.css"; 
 import "./SimpleOverride.css"; 
 import DashboardAdminPerizinan from "./DashboardAdminPerizinan";
@@ -39,7 +39,6 @@ const decodeToken = (token: string): UserData | null => {
 
 const isValidUsername = (v: string) => /^[a-zA-Z0-9_]{3,32}$/.test(v);
 // Validasi sederhana di frontend
-const isValidPassword = (v: string) => /^[ -~]{1,100}$/.test(v);
 
 function escapeInput(str: string): string {
   return str.replace(/[<>&'"`]/g, "");
