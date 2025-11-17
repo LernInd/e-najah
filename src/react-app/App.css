@@ -1,227 +1,31 @@
-/* src/react-app/App.css */
+/* App.css hanya untuk style unik (contoh: slider login) */
 
-#root {
-  max-width: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* === Tampilan Login === */
-.login-container {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background-color: var(--color-bg);
-}
 .slider-panel {
-  width: 60%;
-  height: 100%;
+  width: 100%;
+  height: 220px;
+  max-width: 420px;
+  margin: 2rem auto 1.2rem auto;
   position: relative;
-  background-color: #000;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1.5px solid #E0E0E0;
+  box-shadow: 0 2px 10px 3px rgba(39,45,57,0.06);
 }
 .slide {
   width: 100%;
-  height: 100%;
+  height: 220px;
   object-fit: cover;
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   opacity: 0;
-  transition: opacity 1s ease-in-out;
+  transition: opacity .9s cubic-bezier(0.37,0,0.63,1);
 }
 .slide.active {
   opacity: 1;
 }
-.login-container > .form-panel {
-  width: 40%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-/* === Container Aplikasi (Halaman Penuh) === */
-.app-container {
-  width: 100vw;
-  min-height: 100vh;
-  overflow-y: auto;
-  background-color: var(--color-bg);
-}
-.dashboard-page {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 3rem 2rem;
-  box-sizing: border-box;
-}
-
-/* === Style Umum Form (dipakai di Login & Dashboard) === */
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  color: var(--color-text-primary);
-}
-.app-container .login-form {
-  max-width: 800px;
-  width: 100%;
-}
-
-.login-form h2 {
-  font-size: 2.2rem; /* Diubah ke rem */
-  line-height: 1.1;
-  margin-bottom: 0.5rem;
-}
-.login-form p {
-  color: var(--color-text-secondary);
-  margin-bottom: 2rem;
-  font-size: 1.1rem;
-}
-.form-group {
-  margin-bottom: 1.5rem;
-}
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  font-size: 1rem;
-}
-.form-group input,
-.form-group textarea,
-.form-group select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-sizing: border-box;
-  background-color: var(--color-bg-card);
-  color: var(--color-text-primary);
-  font-size: 1rem;
-  font-family: inherit;
-}
-.form-group input[type="file"] {
-  color: var(--color-text-secondary);
-  padding: 0.6rem 1rem;
-}
-.form-group textarea {
-  min-height: 80px;
-}
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: var(--color-primary);
-  outline: 1px solid var(--color-primary);
-}
-
-.login-button {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background-color: var(--color-primary);
-  color: var(--color-text-on-primary);
-  cursor: pointer;
-  transition: background-color 0.25s;
-}
-.login-button:hover {
-  background-color: var(--color-primary-hover);
-  border-color: transparent;
-}
-.login-button:disabled {
-  background-color: var(--color-primary);
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* === Style Pesan & Tombol Lain === */
-.error-message {
-  color: var(--color-error);
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid var(--color-error);
-  padding: 0.75rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-.logout-button {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.25s;
-  margin-top: 1rem;
-}
-.logout-button:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-.profile-data {
-  background-color: #F3F4F6;
-  border: 1px solid var(--color-border);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  color: var(--color-primary-hover);
-  word-wrap: break-word;
-  white-space: pre-wrap;
-}
-
-/* === BREAKPOINT TABLET (1024px) === */
-@media (max-width: 1024px) {
-  /* Buat 50/50 di tablet */
-  .slider-panel {
-    width: 50%;
-  }
-  .login-container > .form-panel {
-    width: 50%;
-  }
-  /* Perkecil lebar konten dashboard di tablet */
-  .app-container .login-form {
-    max-width: 600px;
-  }
-}
-
-/* === BREAKPOINT MOBILE (768px) === */
-@media (max-width: 768px) {
-  /* Halaman Login: Tumpuk */
-  .login-container {
-    flex-direction: column;
-  }
-  .slider-panel {
-    width: 100%;
-    height: 35%; /* Beri lebih banyak ruang untuk form */
-  }
-  .login-container > .form-panel {
-    width: 100%;
-    height: 65%;
-    align-items: flex-start;
-    padding: 2rem;
-    overflow-y: auto;
-  }
-  .login-form {
-    max-width: 100%;
-  }
-  .login-form h2 {
-    font-size: 2rem; /* Perkecil judul di HP */
-  }
-  
-  /* Halaman Dashboard: Perkecil padding */
-  .dashboard-page {
-    padding: 1.5rem 1rem;
+@media (max-width: 500px) {
+  .slider-panel, .slide {
+    height: 114px;
   }
 }

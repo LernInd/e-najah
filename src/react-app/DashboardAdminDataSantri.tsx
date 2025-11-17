@@ -53,6 +53,10 @@ interface DashboardAdminDataSantriProps {
 // Helper
 const getToken = (): string | null => localStorage.getItem("token");
 
+function escapeInput(str: string): string {
+  return str.replace(/[<>&'"`]/g, "");
+}
+
 // =======================================================
 // "Halaman" Dashboard (Statistik + Pencarian)
 // =======================================================
@@ -170,7 +174,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onShowDetail }) => {
               type="text"
               placeholder="Cari berdasarkan nama santri..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(escapeInput(e.target.value))}
               disabled={isSearching}
             />
             <button
@@ -375,7 +379,7 @@ const TambahSantriView = () => {
               id="nama_santri"
               required
               value={namaSantri}
-              onChange={(e) => setNamaSantri(e.target.value)}
+              onChange={(e) => setNamaSantri(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -422,7 +426,7 @@ const TambahSantriView = () => {
             <textarea
               id="alamat"
               value={alamat}
-              onChange={(e) => setAlamat(e.target.value)}
+              onChange={(e) => setAlamat(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -431,7 +435,7 @@ const TambahSantriView = () => {
               type="text"
               id="nama_ayah"
               value={namaAyah}
-              onChange={(e) => setNamaAyah(e.target.value)}
+              onChange={(e) => setNamaAyah(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -440,7 +444,7 @@ const TambahSantriView = () => {
               type="text"
               id="kontak_ayah"
               value={kontakAyah}
-              onChange={(e) => setKontakAyah(e.target.value)}
+              onChange={(e) => setKontakAyah(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -449,7 +453,7 @@ const TambahSantriView = () => {
               type="text"
               id="nama_ibu"
               value={namaIbu}
-              onChange={(e) => setNamaIbu(e.target.value)}
+              onChange={(e) => setNamaIbu(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -458,7 +462,7 @@ const TambahSantriView = () => {
               type="text"
               id="kontak_ibu"
               value={kontakIbu}
-              onChange={(e) => setKontakIbu(e.target.value)}
+              onChange={(e) => setKontakIbu(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -467,7 +471,7 @@ const TambahSantriView = () => {
               type="text"
               id="nama_wali"
               value={namaWali}
-              onChange={(e) => setNamaWali(e.target.value)}
+              onChange={(e) => setNamaWali(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -476,7 +480,7 @@ const TambahSantriView = () => {
               type="text"
               id="kontak_wali"
               value={kontakWali}
-              onChange={(e) => setKontakWali(e.target.value)}
+              onChange={(e) => setKontakWali(escapeInput(e.target.value))}
             />
           </div>
         </div>

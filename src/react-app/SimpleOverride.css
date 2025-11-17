@@ -1,0 +1,54 @@
+/* SimpleOverride.css – Kompromi legacy + minimalis modern */
+
+/* Dasar background, tetap putih/bersih, bantu mencegah anomali di root atau di luar panel utama */
+body, #root {
+  background: #FCFCFC;
+}
+
+/* Card dan panel universal: Pakai border-radius modern, tapi jangan override border/shadow panel/tabel/tombol dari legacy CSS */
+.placeholder-page, .dashboard-content .login-form, .content-page {
+  border-radius: 12px;
+  background: #FFF;
+}
+
+/* Heading universal, tebal dan kontras (tanpa !important) */
+h1, h2, h3, h4, h5 {
+  font-family: 'Inter', Arial, sans-serif;
+  font-weight: 700;
+  color: #23252b;
+}
+h2 {
+  font-size: 1.5rem;
+}
+
+/* Badge minimal hanya untuk badge tanpa style lama saja */
+.status-badge, .status-badge-small {
+  font-family: inherit;
+}
+
+/* Input: buat lebih flat, tapi biarkan border dan spacing dari CSS dashboard berlaku */
+input, select, textarea {
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+/* Table/Modal: gunakan setting asli kecuali background/rounded saja */
+.results-table, .modal-content {
+  background: #FFF;
+  border-radius: 10px;
+}
+
+/* Profile info card agar tetap soft */
+.profile-data {
+  background: #F8FAFC; 
+  color: #328B50;
+  border-radius: 8px;
+}
+
+/* Responsive fix: tidak override padding, font, dan grid milik CSS dashboard lama! */
+@media (max-width: 768px) {
+  .placeholder-page, .dashboard-content .login-form, .content-page {
+    border-radius: 7px;
+    background: #FFF;
+  }
+}

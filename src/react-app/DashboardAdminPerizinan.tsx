@@ -77,6 +77,10 @@ const formatKeterlambatan = (totalJam: number | null): string => {
   return `${hari} hari ${jam} jam`;
 };
 
+function escapeInput(str: string): string {
+  return str.replace(/[<>&'"`]/g, "");
+}
+
 // Props dari App.tsx
 interface DashboardAdminPerizinanProps {
   loggedInUser: UserData;
@@ -234,7 +238,7 @@ const PengajuanView: React.FC<PengajuanViewProps> = ({ onSantriSelected }) => {
               type="text"
               placeholder="Ketik nama santri..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(escapeInput(e.target.value))}
               disabled={isSearching}
             />
             <button
@@ -338,8 +342,8 @@ const BuatPengajuanFormView: React.FC<BuatPengajuanFormViewProps> = ({
         },
         body: JSON.stringify({
           santriId: santri.id,
-          namaPengajuan,
-          keterangan,
+          namaPengajuan: escapeInput(namaPengajuan),
+          keterangan: escapeInput(keterangan),
         }),
       });
       const data = await response.json();
@@ -396,7 +400,7 @@ const BuatPengajuanFormView: React.FC<BuatPengajuanFormViewProps> = ({
               id="nama_pengajuan"
               required
               value={namaPengajuan}
-              onChange={(e) => setNamaPengajuan(e.target.value)}
+              onChange={(e) => setNamaPengajuan(escapeInput(e.target.value))}
             />
           </div>
           <div className="form-group form-span-2">
@@ -404,7 +408,7 @@ const BuatPengajuanFormView: React.FC<BuatPengajuanFormViewProps> = ({
             <textarea
               id="keterangan"
               value={keterangan}
-              onChange={(e) => setKeterangan(e.target.value)}
+              onChange={(e) => setKeterangan(escapeInput(e.target.value))}
             />
           </div>
         </div>

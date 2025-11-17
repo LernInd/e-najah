@@ -41,6 +41,10 @@ interface DashboardNdalemProps {
 // Helper
 const getToken = (): string | null => localStorage.getItem("token");
 
+function escapeInput(str: string): string {
+  return str.replace(/[<>&'"`]/g, "");
+}
+
 // =======================================================
 // Komponen Modal Persetujuan
 // =======================================================
@@ -120,7 +124,7 @@ const PersetujuanModal: React.FC<PersetujuanModalProps> = ({
               id="tanggal_kembali"
               required
               value={tanggalKembali}
-              onChange={(e) => setTanggalKembali(e.target.value)}
+              onChange={(e) => setTanggalKembali(escapeInput(e.target.value))}
               min={new Date().toISOString().split("T")[0]}
             />
           </div>
@@ -401,7 +405,7 @@ const AturSanksiView: React.FC = () => {
               type="number"
               id="min_jam"
               value={minJam}
-              onChange={(e) => setMinJam(e.target.value)}
+              onChange={(e) => setMinJam(escapeInput(e.target.value))}
               placeholder="Contoh: 6"
               required
             />
@@ -412,7 +416,7 @@ const AturSanksiView: React.FC = () => {
               type="text"
               id="keterangan_sanksi"
               value={keterangan}
-              onChange={(e) => setKeterangan(e.target.value)}
+              onChange={(e) => setKeterangan(escapeInput(e.target.value))}
               placeholder="Contoh: Membersihkan area kamar mandi"
               required
             />

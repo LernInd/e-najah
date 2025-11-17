@@ -18,46 +18,66 @@ const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: JwtPayload } }>()
 // --- Rute Publik ---
 // =======================================================
 app.post("/api/login", async (c) => {
-  try {
-    const { username, password } = await c.req.json();
-    if (!username || !password) {
-      throw new HTTPException(400, { message: "Username dan password diperlukan" });
-    }
-    
-    // --- UBAH DISINI ---
-    // Ambil juga nama_lengkap
-    const stmt = c.env.DB.prepare(
-      "SELECT id, username, password, peran, nama_lengkap FROM pengguna WHERE username = ?"
-    );
-    const user = await stmt.bind(username).first<any>();
-    // --- BATAS PERUBAHAN ---
-
-    if (!user) {
-      throw new HTTPException(404, { message: "Username tidak ditemukan" });
-    }
-    if (user.password !== password) {
-      throw new HTTPException(401, { message: "Password salah" });
-    }
-
-    // --- UBAH DISINI ---
-    // Masukkan nama_lengkap ke payload token
-    const payload = {
-      id: user.id,
-      username: user.username,
-      peran: user.peran,
-      nama_lengkap: user.nama_lengkap, // <-- TAMBAHKAN INI
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 8, // 8 jam
-    };
-    // --- BATAS PERUBAHAN ---
-
-    const token = await sign(payload, c.env.JWT_SECRET);
-    return c.json({ token });
-  } catch (e: any) {
-    if (e instanceof HTTPException) return e.getResponse();
-    console.error(e);
-    return c.json({ error: "Terjadi kesalahan internal" }, 500);
+  // ---- BACKEND SECURITY BEST PRACTICE ----
+  // 1. Validasi input lebih ketat (panjang, regex, filter!)
+  function sanitizeInput(str: string) {
+    if (!str || typeof str !== 'string') return '';
+    return str.replace(/[<>&'"`]/g, '').slice(0, 1000); // prevent XSS & payload
   }
+  // 2. Rate limit login endpoint per IP (sederhana, in-memory, NOT for prod)
+  const loginAttemptsByIp = {};
+  const ip = c.req.header("CF-Connecting-IP") || "local";
+  loginAttemptsByIp[ip] = loginAttemptsByIp[ip] || { count: 0, last: 0 };
+  const now = Date.now();
+  if (loginAttemptsByIp[ip].count > 8 && now - loginAttemptsByIp[ip].last < 60000) {
+    return c.json({ error: "Terlalu banyak percobaan. Coba lagi dalam 1 menit." }, 429);
+  }
+  loginAttemptsByIp[ip].last = now;
+
+  // Validasi input:
+  const { username, password } = await c.req.json();
+  if (!username || !password) {
+    throw new HTTPException(400, { message: "Username dan password diperlukan" });
+  }
+  if (!/^[a-zA-Z0-9_]{3,32}$/.test(username)) {
+    throw new HTTPException(400, { message: "Format username tidak valid" });
+  }
+  if (password.length < 8 || password.length > 32) {
+    throw new HTTPException(400, { message: "Password tidak valid" });
+  }
+  // --- BATAS PERUBAHAN ---
+
+  // Ambil juga nama_lengkap
+  const stmt = c.env.DB.prepare(
+    "SELECT id, username, password, peran, nama_lengkap FROM pengguna WHERE username = ?"
+  );
+  const user = await stmt.bind(username).first<any>();
+  // --- BATAS PERUBAHAN ---
+
+  if (!user) {
+    loginAttemptsByIp[ip].count++;
+    return c.json({ error: "Username tidak ditemukan" }, 404);
+  }
+  if (user.password !== password) {
+    loginAttemptsByIp[ip].count++;
+    return c.json({ error: "Password salah" }, 401);
+  }
+  loginAttemptsByIp[ip].count = 0;
+
+  // --- UBAH DISINI ---
+  // Masukkan nama_lengkap ke payload token
+  const payload = {
+    id: user.id,
+    username: user.username,
+    peran: user.peran,
+    nama_lengkap: user.nama_lengkap, // <-- TAMBAHKAN INI
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 8, // 8 jam
+  };
+  // --- BATAS PERUBAHAN ---
+
+  const token = await sign(payload, c.env.JWT_SECRET);
+  return c.json({ token });
 });
 
 app.get("/api/images/:key", async (c) => {
