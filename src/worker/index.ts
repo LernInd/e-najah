@@ -1,3 +1,5 @@
+// src/worker/index.ts
+
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { sign, jwt } from "hono/jwt";
@@ -24,7 +26,6 @@ const PASSWORD_MAX_LENGTH = 32;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,32}$/;
 const LOGIN_ATTEMPT_LIMIT = 8;
 const LOGIN_ATTEMPT_WINDOW_MS = 60000; // 1 menit
-const RATE_LIMIT_CLEANUP_INTERVAL = 300000; // 5 menit
 const MAX_INPUT_LENGTH = 1000;
 const IMAGE_CACHE_MAX_AGE = 3600;
 const SEARCH_RESULT_LIMIT = 10;
@@ -92,6 +93,12 @@ const loginAttempts = new Map<string, RateLimitEntry>();
  * Validasi rate limit untuk login
  */
 function checkRateLimit(ip: string): { allowed: boolean; message?: string } {
+  // PERBAIKAN: Memory Guard Sederhana
+  // Karena setInterval tidak boleh di global scope, kita bersihkan manual jika terlalu penuh
+  if (loginAttempts.size > 5000) {
+    loginAttempts.clear();
+  }
+
   const now = Date.now();
   const entry = loginAttempts.get(ip);
 
@@ -136,16 +143,6 @@ function incrementFailedAttempt(ip: string): void {
 function resetRateLimit(ip: string): void {
   loginAttempts.delete(ip);
 }
-
-// Cleanup rate limit map setiap 5 menit
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of loginAttempts.entries()) {
-    if (now - entry.lastAttempt > RATE_LIMIT_CLEANUP_INTERVAL) {
-      loginAttempts.delete(ip);
-    }
-  }
-}, RATE_LIMIT_CLEANUP_INTERVAL);
 
 // =======================================================
 // --- DATABASE UTILITIES ---
