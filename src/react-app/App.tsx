@@ -49,11 +49,11 @@ function escapeInput(str: string): string {
 
 // Daftar Banner (Pastikan file ini ada di folder /public)
 const BANNERS = [
-  "/banner1.jpg",
-  "/banner2.jpg",
-  "/banner3.jpg",
-  "/banner4.jpg",
-  "/banner5.jpg"
+  "banner1.JPG",
+  "banner2.JPG",
+  "banner3.JPG",
+  "banner4.jpg",
+  "banner5.jpg"
 ];
 
 // ===============================================
