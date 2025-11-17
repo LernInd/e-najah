@@ -16,16 +16,17 @@ type UserData = {
   peran: string;
   nama_lengkap?: string;
 };
+// VIEW BARU: "sanksi"
 type PerizinanView =
   | "dashboard"
   | "pengajuan"
   | "status"
   | "surat"
   | "kembali"
+  | "sanksi"
   | "buat_pengajuan_form";
 type SantriStatus = "santri" | "alumni" | "pengurus" | "pengabdi";
 type KeputusanStatus = "menunggu" | "disetujui" | "ditolak";
-type StatusKembali = "Tepat Waktu" | "Terlambat";
 
 type SantriPerizinanSearchResult = {
   id: number;
@@ -49,6 +50,7 @@ type SemuaPengajuanData = {
   pengaju: string;
   keputusan: KeputusanStatus;
   disetujui_oleh: string | null;
+  nama_penyetuju?: string | null;
   nama_santri: string;
   foto: string | null;
   alamat: string | null;
@@ -60,6 +62,18 @@ type IzinAktifData = {
   Tanggal_Kembali: string;
   nama_santri: string;
   nama_pengajuan: string;
+};
+// TIPE DATA SANKSI
+type SanksiData = {
+  ID_Perizinan: number;
+  ID_Santri: number;
+  nama_santri: string;
+  foto: string | null;
+  status_santri: string;
+  Keterlambatan_Jam: number;
+  Sanksi_Deskripsi: string | null;
+  Status_Sanksi: string | null;
+  Tanggal_Aktual_Kembali: string;
 };
 
 // Helper
@@ -203,14 +217,7 @@ const PengajuanView: React.FC<PengajuanViewProps> = ({ onSantriSelected }) => {
             disabled={isSearching}
           />
           <button type="submit" disabled={isSearching}>
-            {/* Ikon Pencarian SVG */}
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="search-icon" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -372,7 +379,6 @@ const StatusView: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-        // FIX: Akses data.data.results
         if (response.ok) setAllPengajuan(data.data?.results || []);
       } catch (e) {
         console.error("Fetch error:", e);
@@ -490,7 +496,7 @@ const SuratView: React.FC = () => {
               <tr key={p.ID_Pengajuan}>
                 <td data-label="Nama">{p.nama_santri}</td>
                 <td data-label="Keperluan">{p.nama_pengajuan}</td>
-                <td data-label="Oleh">{p.disetujui_oleh || "-"}</td>
+                <td data-label="Oleh">{p.nama_penyetuju || p.disetujui_oleh || "-"}</td>
                 <td data-label="Aksi">
                   <button className="print-button" onClick={() => {
                      if (!p.ID_Perizinan) return alert("Data perizinan belum lengkap");
@@ -500,7 +506,7 @@ const SuratView: React.FC = () => {
                        alamat: p.alamat,
                        foto: p.foto,
                        Tanggal_Kembali: p.Tanggal_Kembali,
-                       disetujui_oleh: p.disetujui_oleh
+                       disetujui_oleh: p.nama_penyetuju || p.disetujui_oleh
                      });
                   }}>Cetak</button>
                 </td>
@@ -515,15 +521,13 @@ const SuratView: React.FC = () => {
 };
 
 // =======================================================
-// View: Kembali
+// View: Kembali (AUTOMATED)
 // =======================================================
 const KembaliView: React.FC = () => {
   const [list, setList] = useState<IzinAktifData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIzin, setSelectedIzin] = useState<IzinAktifData | null>(null);
-  const [status, setStatus] = useState<StatusKembali>("Tepat Waktu");
-  const [hari, setHari] = useState("0");
-  const [jam, setJam] = useState("0");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchActive = async () => {
     setIsLoading(true);
@@ -540,28 +544,31 @@ const KembaliView: React.FC = () => {
 
   useEffect(() => { fetchActive(); }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleConfirmReturn = async () => {
     if (!selectedIzin) return;
+    setIsSubmitting(true);
     try {
       const res = await fetch("/api/admin/perizinan/tandai-kembali", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({
-          perizinanId: selectedIzin.ID_Perizinan,
-          statusKembali: status,
-          keterlambatanHari: parseInt(hari) || 0,
-          keterlambatanJam: parseInt(jam) || 0
-        })
+        body: JSON.stringify({ perizinanId: selectedIzin.ID_Perizinan }) // Hanya kirim ID
       });
+      
+      const data = await res.json();
+      
       if (res.ok) {
-        alert("Berhasil dicatat");
+        const { status, keterlambatan } = data.data;
+        let msg = `Santri berhasil dikonfirmasi kembali.\nStatus: ${status}`;
+        if (status === 'Terlambat') msg += `\nKeterlambatan: ${keterlambatan} Jam`;
+        alert(msg);
+        
         setSelectedIzin(null);
         fetchActive();
       } else {
-        alert("Gagal menyimpan");
+        alert("Gagal: " + (data.error || "Kesalahan server"));
       }
-    } catch (e) { alert("Gagal menyimpan"); }
+    } catch (e: any) { alert("Gagal menyimpan: " + e.message); } 
+    finally { setIsSubmitting(false); }
   };
 
   return (
@@ -573,9 +580,7 @@ const KembaliView: React.FC = () => {
             <tr><th>Nama</th><th>Izin</th><th>Harus Kembali</th><th>Aksi</th></tr>
           </thead>
           <tbody>
-            {!isLoading && list.length === 0 && (
-               <tr><td colSpan={4} style={{textAlign:'center', padding:'2rem', color:'#888'}}>Tidak ada santri izin aktif</td></tr>
-            )}
+            {!isLoading && list.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', padding:'2rem'}}>Tidak ada santri izin aktif</td></tr>}
             {list.map((item) => (
               <tr key={item.ID_Perizinan}>
                 <td data-label="Nama">{item.nama_santri}</td>
@@ -595,39 +600,151 @@ const KembaliView: React.FC = () => {
       </div>
 
       {selectedIzin && (
-        <div className="modal-overlay" onClick={() => setSelectedIzin(null)}>
+        <div className="modal-overlay" onClick={() => !isSubmitting && setSelectedIzin(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Catat Kepulangan: {selectedIzin.nama_santri}</h3>
-            <form onSubmit={handleSubmit} className="modal-form">
-              <div className="form-group">
-                <label>Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value as StatusKembali)}>
-                  <option value="Tepat Waktu">Tepat Waktu</option>
-                  <option value="Terlambat">Terlambat</option>
-                </select>
+            <h3 style={{marginTop:0}}>Konfirmasi Kepulangan</h3>
+            <div className="detail-info-grid simple-grid" style={{margin:'1.5rem 0'}}>
+              <div className="detail-item">
+                <label>Nama Santri</label> <p>{selectedIzin.nama_santri}</p>
               </div>
-              {status === "Terlambat" && (
-                <div className="keterlambatan-inputs">
-                  <div className="form-group">
-                    <label>Hari</label>
-                    <input type="number" min="0" value={hari} onChange={e => setHari(e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label>Jam</label>
-                    <input type="number" min="0" max="23" value={jam} onChange={e => setJam(e.target.value)} />
-                  </div>
-                </div>
-              )}
-              <div className="modal-actions">
-                 <button type="submit" className="login-button">Simpan</button>
+              <div className="detail-item">
+                <label>Jadwal Kembali</label> 
+                <p>{new Date(selectedIzin.Tanggal_Kembali).toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</p>
               </div>
-            </form>
+              <div className="detail-item detail-span-2">
+                <p style={{fontSize:'0.9rem', color:'#666', fontStyle:'italic'}}>
+                  Sistem akan otomatis menghitung keterlambatan berdasarkan waktu saat ini.
+                </p>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+               <button 
+                 className="detail-button" 
+                 onClick={() => setSelectedIzin(null)} 
+                 disabled={isSubmitting}
+                 style={{marginRight:'0.5rem'}}
+               >
+                 Batal
+               </button>
+               <button 
+                 className="login-button" 
+                 onClick={handleConfirmReturn}
+                 disabled={isSubmitting}
+                 style={{width:'auto'}}
+               >
+                 {isSubmitting ? "Memproses..." : "Konfirmasi Kembali Sekarang"}
+               </button>
+            </div>
           </div>
         </div>
       )}
     </>
   );
 };
+
+// =======================================================
+// View: Data Sanksi (NEW FEATURE)
+// =======================================================
+const SanksiView: React.FC = () => {
+  const [list, setList] = useState<SanksiData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedSanksi, setSelectedSanksi] = useState<SanksiData | null>(null);
+
+  const fetchSanksi = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/admin/perizinan/terlambat", { headers: { Authorization: `Bearer ${getToken()}` }});
+      const data = await res.json();
+      if (res.ok) {
+        // Filter hanya yang belum selesai
+        const belumSelesai = (data.data?.results || []).filter((item: SanksiData) => item.Status_Sanksi !== 'Selesai');
+        setList(belumSelesai);
+      }
+    } catch(e) { console.error(e); } finally { setIsLoading(false); }
+  };
+
+  useEffect(() => { fetchSanksi(); }, []);
+
+  const handleSelesaikanSanksi = async () => {
+    if (!selectedSanksi) return;
+    if (!window.confirm(`Tandai sanksi ${selectedSanksi.nama_santri} sebagai SELESAI?`)) return;
+
+    try {
+      const res = await fetch("/api/admin/perizinan/sanksi-selesai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ perizinanId: selectedSanksi.ID_Perizinan })
+      });
+      
+      if (res.ok) {
+        alert("Sanksi berhasil diselesaikan.");
+        setSelectedSanksi(null);
+        fetchSanksi();
+      } else {
+        alert("Gagal update status.");
+      }
+    } catch (e) { alert("Gagal koneksi."); }
+  };
+
+  return (
+    <>
+      <PageHeader title="Data Pelanggaran & Sanksi" subtitle="Daftar santri terlambat yang perlu menjalani sanksi" />
+      <div className="table-card">
+        <table className="results-table">
+          <thead>
+            <tr><th>Nama</th><th>Terlambat</th><th>Hukuman</th><th>Aksi</th></tr>
+          </thead>
+          <tbody>
+            {!isLoading && list.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', padding:'2rem'}}>Tidak ada pelanggaran aktif.</td></tr>}
+            {list.map((item) => (
+              <tr key={item.ID_Perizinan}>
+                <td data-label="Nama">{item.nama_santri}</td>
+                <td data-label="Terlambat" className="text-late">{item.Keterlambatan_Jam} Jam</td>
+                <td data-label="Hukuman" style={{maxWidth:'250px', whiteSpace:'normal'}}>
+                  {item.Sanksi_Deskripsi || <span style={{color:'#999', fontStyle:'italic'}}>Belum ada aturan sanksi yg cocok</span>}
+                </td>
+                <td data-label="Aksi">
+                  <button className="detail-button" onClick={() => setSelectedSanksi(item)}>
+                    Detail & Proses
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selectedSanksi && (
+        <div className="modal-overlay" onClick={() => setSelectedSanksi(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Detail Sanksi Santri</h3>
+            <div className="detail-view-container" style={{marginBottom:'1rem'}}>
+               <div className="detail-photo">
+                {selectedSanksi.foto ? <img src={`/api/images/${selectedSanksi.foto}`} alt="Foto"/> : <div className="photo-placeholder">No Foto</div>}
+               </div>
+               <div className="detail-info-grid simple-grid">
+                 <div className="detail-item"><label>Nama</label><p>{selectedSanksi.nama_santri}</p></div>
+                 <div className="detail-item"><label>Status</label><p>{selectedSanksi.status_santri}</p></div>
+                 <div className="detail-item"><label>Keterlambatan</label><p className="text-late">{selectedSanksi.Keterlambatan_Jam} Jam</p></div>
+                 <div className="detail-item detail-span-2">
+                   <label>Sanksi yang harus dijalani</label>
+                   <p style={{fontWeight:'bold', color:'#D97706'}}>{selectedSanksi.Sanksi_Deskripsi || "Tidak ada sanksi spesifik (Manual)"}</p>
+                 </div>
+               </div>
+            </div>
+            <div className="modal-actions">
+               <button className="login-button" onClick={handleSelesaikanSanksi}>
+                 Konfirmasi Sanksi Selesai
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 
 // =======================================================
 // Main Component
@@ -642,6 +759,7 @@ const DashboardAdminPerizinan: React.FC<DashboardAdminPerizinanProps> = ({ logge
     { key: "status", label: "Status" },
     { key: "surat", label: "Cetak Surat" },
     { key: "kembali", label: "Konfirmasi Kembali" },
+    { key: "sanksi", label: "Data Sanksi" }, // MENU BARU
   ];
 
   return (
@@ -664,7 +782,7 @@ const DashboardAdminPerizinan: React.FC<DashboardAdminPerizinanProps> = ({ logge
           {view === "status" && <StatusView />}
           {view === "surat" && <SuratView />}
           {view === "kembali" && <KembaliView />}
-          {/* Fallback */}
+          {view === "sanksi" && <SanksiView />} {/* ROUTE BARU */}
           {view === "dashboard" && <PengajuanView onSantriSelected={(s) => { setSelectedSantri(s); setView("buat_pengajuan_form"); }} />}
         </main>
       </div>
