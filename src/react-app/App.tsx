@@ -47,9 +47,9 @@ function escapeInput(str: string): string {
 // --- KONFIGURASI BANNER (DARI R2 BUCKET) ---
 // Menggunakan endpoint API yang sudah terhubung ke R2
 const BANNERS = [
-  "/api/images/banner1.jpg",
-  "/api/images/banner2.jpg",
-  "/api/images/banner3.jpg",
+  "/api/images/banner1.JPG",
+  "/api/images/banner2.JPG",
+  "/api/images/banner3.JPG",
   "/api/images/banner4.jpg",
   "/api/images/banner5.jpg"
 ];
