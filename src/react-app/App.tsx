@@ -1,9 +1,8 @@
 // src/react-app/App.tsx
 
-import { useState, useEffect, FormEvent } from "react";
-import "./App.css"; // Style layout khusus login ada di sini
-import "./SimpleOverride.css"; // Style global
-// Impor SEMUA dashboard
+import React, { useState, useEffect, FormEvent } from "react";
+import "./App.css"; 
+import "./SimpleOverride.css"; 
 import DashboardAdminPerizinan from "./DashboardAdminPerizinan";
 import DashboardAdminDataSantri from "./DashboardAdminDataSantri";
 import DashboardNdalem from "./DashboardNdalem";
@@ -38,22 +37,22 @@ const decodeToken = (token: string): UserData | null => {
   }
 };
 
-// RegEx username: hanya huruf, angka, underscore, min 3 max 32
 const isValidUsername = (v: string) => /^[a-zA-Z0-9_]{3,32}$/.test(v);
-// Password check sederhana di frontend
-const isValidPassword = (v: string) => /^[ -~]{8,32}$/.test(v);
+// Validasi sederhana di frontend
+const isValidPassword = (v: string) => /^[ -~]{1,100}$/.test(v);
 
 function escapeInput(str: string): string {
   return str.replace(/[<>&'"`]/g, "");
 }
 
-// Daftar Banner (Pastikan file ini ada di folder /public)
+// --- KONFIGURASI BANNER (DARI R2 BUCKET) ---
+// Menggunakan endpoint API yang sudah terhubung ke R2
 const BANNERS = [
-  "banner1.JPG",
-  "banner2.JPG",
-  "banner3.JPG",
-  "banner4.jpg",
-  "banner5.jpg"
+  "/api/images/banner1.jpg",
+  "/api/images/banner2.jpg",
+  "/api/images/banner3.jpg",
+  "/api/images/banner4.jpg",
+  "/api/images/banner5.jpg"
 ];
 
 // ===============================================
@@ -66,10 +65,11 @@ function App() {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [retryDelay, setRetryDelay] = useState(0);
   const [waiting, setWaiting] = useState(false);
-  
-  // State untuk slider gambar
+
+  // State Slider Banner
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
+  // Cek Token saat load
   useEffect(() => {
     const token = getToken();
     if (token) {
@@ -82,7 +82,7 @@ function App() {
     }
   }, []);
 
-  // Efek Slider Otomatis (Ganti tiap 5 detik)
+  // Auto Slide Banner (5 detik)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => (prev + 1) % BANNERS.length);
@@ -90,7 +90,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Rate limit logic
+  // Rate Limit Timer
   useEffect(() => {
     if (retryDelay > 0) {
       setWaiting(true);
@@ -105,43 +105,41 @@ function App() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (waiting) return;
-    if (!isValidUsername(username)) return setError("Username tidak valid (hanya huruf/angka/_, 3-32 char)");
-    if (!isValidPassword(password)) return setError("Password minimal 8 karakter");
+    if (!isValidUsername(username)) return setError("Format username salah (huruf/angka/_, 3-32 char)");
     
     setIsLoading(true);
     setError("");
-    
+
     try {
       const response = await fetch("/api/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          password
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password })
       });
-      const data = await response.json();
       
+      const data = await response.json();
+
       if (!response.ok) {
-        const nextDelay = Math.min((loginAttempts + 1), 10);
+        const nextDelay = Math.min((loginAttempts + 1) * 2, 10); 
         setRetryDelay(nextDelay);
-        setLoginAttempts(a => a + 1);
-        throw new Error(data.error || data.message || `Login gagal (${nextDelay}s)`);
+        setLoginAttempts(prev => prev + 1);
+        throw new Error(data.error || "Login gagal");
       }
 
       // Login Sukses
-      localStorage.setItem("token", data.data.token);
-      const user = decodeToken(data.data.token);
+      const token = data.data?.token;
+      if (!token) throw new Error("Token tidak ditemukan dalam respons");
+
+      localStorage.setItem("token", token);
+      const user = decodeToken(token);
       if (!user) throw new Error("Token tidak valid");
-      
+
       setLoggedInUser(user);
       setUsername("");
       setPassword("");
       setLoginAttempts(0);
     } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan koneksi");
+      setError(err.message || "Terjadi kesalahan");
     } finally {
       setIsLoading(false);
     }
@@ -153,12 +151,12 @@ function App() {
     setError("");
   };
 
-  // --- TAMPILAN LOGGED OUT (LOGIN SCREEN SPLIT) ---
+  // --- TAMPILAN LOGIN (SPLIT SCREEN) ---
   if (!loggedInUser) {
     return (
       <div className="login-split-container">
         
-        {/* KIRI (60%) - IMAGE SLIDER */}
+        {/* KIRI (60%) - GAMBAR / BANNER DARI BUCKET */}
         <div className="login-banner-side">
           {BANNERS.map((src, index) => (
             <div
@@ -189,14 +187,18 @@ function App() {
           <div className="form-wrapper">
             <div className="form-header">
               <h2>Selamat Datang</h2>
-              <p>Silakan masuk ke akun Anda</p>
+              <p>Silakan masuk untuk melanjutkan</p>
             </div>
 
             <form onSubmit={handleSubmit} autoComplete="off">
-              {error && <div className="alert error">{error}</div>}
-              {waiting && retryDelay > 0 && (
-                <div className="alert warning">
-                  Tunggu {retryDelay} detik lagi...
+              {error && (
+                <div className="alert error" style={{background:'#FEF2F2', color:'#991B1B', padding:'0.8rem', borderRadius:'8px', marginBottom:'1rem', border:'1px solid #FECACA'}}>
+                  {error}
+                </div>
+              )}
+              {waiting && (
+                <div className="alert warning" style={{background:'#FFFBEB', color:'#92400E', padding:'0.8rem', borderRadius:'8px', marginBottom:'1rem', border:'1px solid #FDE68A'}}>
+                  Mohon tunggu {retryDelay} detik...
                 </div>
               )}
 
@@ -207,12 +209,12 @@ function App() {
                   id="username"
                   value={username}
                   onChange={e => setUsername(escapeInput(e.target.value.replace(/[^\w]/g, "")))}
-                  placeholder="Masukkan username"
+                  placeholder="Username"
                   required
                   disabled={isLoading || waiting}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="password">Password</label>
                 <input
@@ -220,7 +222,7 @@ function App() {
                   id="password"
                   value={password}
                   onChange={e => setPassword(escapeInput(e.target.value))}
-                  placeholder="Masukkan password"
+                  placeholder="Password"
                   required
                   disabled={isLoading || waiting}
                 />
@@ -230,6 +232,7 @@ function App() {
                 type="submit"
                 className="login-button full-width"
                 disabled={isLoading || waiting || !username || !password}
+                style={{marginTop:'1.5rem', height:'48px', fontSize:'1rem'}}
               >
                 {isLoading ? "Memuat..." : waiting ? "Tunggu..." : "Masuk"}
               </button>
@@ -240,12 +243,11 @@ function App() {
             </div>
           </div>
         </div>
-
       </div>
     );
   }
 
-  // --- TAMPILAN LOGGED IN (DASHBOARD) ---
+  // --- TAMPILAN DASHBOARD (LOGGED IN) ---
   return (
     <div className="app-container">
       {loggedInUser.peran === "admin_perizinan" && (
@@ -257,13 +259,14 @@ function App() {
       {loggedInUser.peran === "ndalem" && (
         <DashboardNdalem loggedInUser={loggedInUser} handleLogout={handleLogout} />
       )}
-      {/* Fallback jika role tidak dikenali */}
-      {(loggedInUser.peran !== "admin_perizinan" &&
-        loggedInUser.peran !== "admin_datasantri" &&
-        loggedInUser.peran !== "ndalem") && (
-          <div className="unauthorized">
-             <p>Role tidak dikenali. <button onClick={handleLogout}>Logout</button></p>
-          </div>
+      
+      {/* Fallback jika peran tidak dikenali */}
+      {(!["admin_perizinan", "admin_datasantri", "ndalem"].includes(loggedInUser.peran)) && (
+        <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', flexDirection:'column'}}>
+           <h3>Akses Ditolak</h3>
+           <p>Peran pengguna <strong>{loggedInUser.peran}</strong> tidak memiliki dashboard.</p>
+           <button onClick={handleLogout} className="login-button" style={{width:'auto', marginTop:'1rem'}}>Logout</button>
+        </div>
       )}
     </div>
   );
