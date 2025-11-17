@@ -4,15 +4,9 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { sign, jwt } from "hono/jwt";
 
-// ... (BAGIAN ATAS TIDAK BERUBAH, SALIN DARI KODE SEBELUMNYA SAMPAI BARIS API PUBLIC) ...
-// AGAR LEBIH CEPAT, SAYA HANYA MENAMPILKAN BAGIAN YANG PERLU DITAMBAH/DIUBAH.
-// PASTIKAN ANDA TETAP MENYERTAKAN SEMUA FUNGSI UTILITY DAN KONSTANTA SEBELUMNYA.
-// JIKA RAGU, GUNAKAN KODE FULL DI BAWAH INI:
-
 // =======================================================
-// --- FULL CODE UPDATED ---
+// --- TYPES & INTERFACES ---
 // =======================================================
-
 type JwtPayload = {
   id: number;
   username: string;
@@ -22,17 +16,24 @@ type JwtPayload = {
   exp: number;
 };
 
+// =======================================================
+// --- CONSTANTS & CONFIG ---
+// =======================================================
 const JWT_EXPIRY_HOURS = 8;
 const JWT_EXPIRY_SECONDS = JWT_EXPIRY_HOURS * 60 * 60;
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 32;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,32}$/;
 const LOGIN_ATTEMPT_LIMIT = 8;
-const LOGIN_ATTEMPT_WINDOW_MS = 60000; 
+const LOGIN_ATTEMPT_WINDOW_MS = 60000; // 1 menit
 const MAX_INPUT_LENGTH = 1000;
 const IMAGE_CACHE_MAX_AGE = 3600;
 const SEARCH_RESULT_LIMIT = 10;
 const PAGINATION_LIMIT = 5;
+
+// =======================================================
+// --- SECURITY UTILITIES ---
+// =======================================================
 
 function sanitizeInput(str: string, maxLength: number = MAX_INPUT_LENGTH): string {
   if (!str || typeof str !== 'string') return '';
@@ -59,6 +60,9 @@ function maskSensitiveData(obj: any): any {
   return masked;
 }
 
+// =======================================================
+// --- RATE LIMITING (In-Memory) ---
+// =======================================================
 interface RateLimitEntry {
   count: number;
   lastAttempt: number;
@@ -96,6 +100,10 @@ function resetRateLimit(ip: string): void {
   loginAttempts.delete(ip);
 }
 
+// =======================================================
+// --- DATABASE UTILITIES ---
+// =======================================================
+
 function isValidId(id: any): boolean {
   const parsed = parseInt(id);
   return !isNaN(parsed) && parsed > 0;
@@ -113,6 +121,9 @@ function handleError(error: any, defaultMessage: string = "Terjadi kesalahan") {
   return { error: defaultMessage };
 }
 
+// =======================================================
+// --- APP SETUP ---
+// =======================================================
 const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: JwtPayload } }>();
 
 app.onError((err, c) => {
@@ -120,6 +131,10 @@ app.onError((err, c) => {
   if (err instanceof HTTPException) return err.getResponse();
   return c.json({ error: "Internal Server Error" }, 500);
 });
+
+// =======================================================
+// --- PUBLIC ROUTES ---
+// =======================================================
 
 app.post("/api/login", async (c) => {
   try {
@@ -191,6 +206,9 @@ app.get("/api/images/:key", async (c) => {
   }
 });
 
+// =======================================================
+// --- PROTECTED ROUTES (Admin API) ---
+// =======================================================
 const adminApi = new Hono<{ Bindings: Env; Variables: { jwtPayload: JwtPayload } }>();
 
 adminApi.use("*", async (c, next) => {
@@ -206,9 +224,7 @@ adminApi.get("/profile", (c) => {
   return c.json({ data: maskSensitiveData(c.get("jwtPayload")), message: "OK" }, 200);
 });
 
-// ... (Route Santri Stats, Create, Search, Detail tetap sama seperti sebelumnya) ...
 adminApi.get("/santri/stats", async (c) => {
-  // ... (Logika stats sama)
   try {
     const [putra, putri, totalSantri, totalAlumni, totalPengurus, totalPengabdi] = await Promise.all([
       c.env.DB.prepare("SELECT COUNT(*) as count FROM santri WHERE jenis_kelamin = 'L' AND status_santri = 'santri'").first<{ count: number }>(),
@@ -234,7 +250,6 @@ adminApi.get("/santri/stats", async (c) => {
 });
 
 adminApi.post("/santri/create", async (c) => {
-  // ... (Logika create santri sama)
   try {
     const formData = await c.req.formData();
     const nama_santri = sanitizeInput(formData.get("nama_santri") as string);
@@ -270,7 +285,6 @@ adminApi.post("/santri/create", async (c) => {
 });
 
 adminApi.get("/santri/search", async (c) => {
-  // ... (Logika search santri sama)
   try {
     const query = sanitizeInput(c.req.query("q") || "");
     const page = Math.max(1, parseInt(c.req.query("page") || "1"));
@@ -292,7 +306,6 @@ adminApi.get("/santri/search", async (c) => {
 });
 
 adminApi.get("/santri/:id", async (c) => {
-  // ... (Logika detail santri sama)
   try {
     const id = c.req.param("id");
     if (!isValidId(id)) throw new HTTPException(400);
@@ -303,7 +316,6 @@ adminApi.get("/santri/:id", async (c) => {
 });
 
 adminApi.get("/perizinan/search-santri", async (c) => {
-  // ... (Logika search perizinan sama)
   try {
     const query = sanitizeInput(c.req.query("q") || "");
     if (!query) return c.json({ data: { results: [] }, message: "Empty" }, 200);
@@ -313,7 +325,6 @@ adminApi.get("/perizinan/search-santri", async (c) => {
 });
 
 adminApi.post("/perizinan/create", async (c) => {
-  // ... (Logika create perizinan sama)
   try {
     const body = await c.req.json().catch(() => ({}));
     const { santriId, namaPengajuan, keterangan } = body;
@@ -328,7 +339,6 @@ adminApi.post("/perizinan/create", async (c) => {
 });
 
 adminApi.get("/perizinan/pending", async (c) => {
-  // ... (Logika pending sama)
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT p.ID_Pengajuan, p.nama_pengajuan, p.keterangan, p.pengaju, s.nama_santri, s.status_santri
@@ -340,7 +350,6 @@ adminApi.get("/perizinan/pending", async (c) => {
 });
 
 adminApi.post("/perizinan/update-status", async (c) => {
-  // ... (Logika update status sama)
   try {
     const body = await c.req.json().catch(() => ({}));
     const { pengajuanId, newStatus, tanggalKembali } = body;
@@ -359,7 +368,6 @@ adminApi.post("/perizinan/update-status", async (c) => {
 });
 
 adminApi.get("/perizinan/all", async (c) => {
-  // ... (Logika all sama)
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT
@@ -378,7 +386,6 @@ adminApi.get("/perizinan/all", async (c) => {
 });
 
 adminApi.get("/perizinan/aktif", async (c) => {
-  // ... (Logika aktif sama)
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT i.ID_Perizinan, i.Tanggal_Kembali, s.nama_santri, p.nama_pengajuan
@@ -389,8 +396,8 @@ adminApi.get("/perizinan/aktif", async (c) => {
   } catch (e) { return c.json(handleError(e), 500); }
 });
 
+// UPDATE: Logika Otomatis Hitung Keterlambatan (Fixed Date Comparison)
 adminApi.post("/perizinan/tandai-kembali", async (c) => {
-  // ... (Logika tandai kembali sama)
   try {
     const body = await c.req.json().catch(() => ({}));
     const { perizinanId } = body;
@@ -399,7 +406,12 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
     const izin = await c.env.DB.prepare("SELECT Tanggal_Kembali FROM perizinan WHERE ID_Perizinan = ?").bind(perizinanId).first<{ Tanggal_Kembali: string }>();
     if (!izin) throw new HTTPException(404, { message: "Data tidak ditemukan" });
 
-    const jadwal = new Date(izin.Tanggal_Kembali).getTime();
+    // FIX: Logika Waktu
+    const jadwalDate = new Date(izin.Tanggal_Kembali);
+    // Set batas toleransi sampai akhir hari (23:59:59.999) pada tanggal tersebut
+    jadwalDate.setHours(23, 59, 59, 999);
+    
+    const jadwal = jadwalDate.getTime();
     const aktual = Date.now();
     
     let status = 'Tepat Waktu';
@@ -407,6 +419,7 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
 
     if (aktual > jadwal) {
       status = 'Terlambat';
+      // Hitung selisih dalam jam (bulatkan ke atas)
       telatJam = Math.ceil((aktual - jadwal) / (1000 * 60 * 60));
     }
 
@@ -424,13 +437,8 @@ adminApi.post("/perizinan/tandai-kembali", async (c) => {
   } catch (e) { return c.json(handleError(e), 500); }
 });
 
-// --- FITUR BARU: DATA SANKSI ---
-
-// GET: List Santri Terlambat + Sanksi yang Harus Dilakukan
 adminApi.get("/perizinan/terlambat", async (c) => {
   try {
-    // Query ini menggabungkan data santri yang terlambat ('Terlambat')
-    // dengan aturan sanksi yang sesuai berdasarkan jumlah jam keterlambatan.
     const query = `
       SELECT
         i.ID_Perizinan,
@@ -464,7 +472,6 @@ adminApi.get("/perizinan/terlambat", async (c) => {
   } catch (e) { return c.json(handleError(e), 500); }
 });
 
-// POST: Tandai Sanksi Selesai
 adminApi.post("/perizinan/sanksi-selesai", async (c) => {
   try {
     const body = await c.req.json().catch(() => ({}));
@@ -480,7 +487,6 @@ adminApi.post("/perizinan/sanksi-selesai", async (c) => {
   } catch (e) { return c.json(handleError(e), 500); }
 });
 
-// ... (Route sanksi CRUD tetap sama) ...
 adminApi.get("/sanksi/list", async (c) => {
   try {
     const { results } = await c.env.DB.prepare("SELECT * FROM sanksi WHERE is_active = 1").all();
